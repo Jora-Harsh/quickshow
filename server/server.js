@@ -1,8 +1,8 @@
 // server.js
 import express from 'express';
 import cors from 'cors';
-import connectDB from './configs/db.js';          // make sure this file exists
-import { clerkMiddleware } from '@clerk/express'; // make sure dependency is installed
+import connectDB from './configs/db.js';         
+import { clerkMiddleware } from '@clerk/express'; 
 import { serve } from 'inngest/express';
 import { inngest, functions } from './inngest/index.js';
 
