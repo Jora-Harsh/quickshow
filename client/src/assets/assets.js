@@ -15,10 +15,10 @@ export const assets = {
 }
 
 export const dummyTrailers = [
-     {
-        image: "https://i.ytimg.com/vi/1RC_GIuShTQ/hq720.jpg?sqp=-oaymwEnCOgCEMoBSFryq4qpAxkIARUAAIhCGAHYAQHiAQoIGBACGAY4AUAB&rs=AOn4CLBHwMnQedQdHBJ_rRYJpXOjg1bFvQ",
-        videoUrl: 'https://youtu.be/1RC_GIuShTQ?si=nfA21eJ7X5vV3ULT'
-    },
+    //  {
+    //     image: "https://i.ytimg.com/vi/1RC_GIuShTQ/hq720.jpg?sqp=-oaymwEnCOgCEMoBSFryq4qpAxkIARUAAIhCGAHYAQHiAQoIGBACGAY4AUAB&rs=AOn4CLBHwMnQedQdHBJ_rRYJpXOjg1bFvQ",
+    //     videoUrl: 'https://youtu.be/1RC_GIuShTQ?si=nfA21eJ7X5vV3ULT'
+    // },
     {
         image: "https://img.youtube.com/vi/WpW36ldAqnM/maxresdefault.jpg",
         videoUrl: 'https://https://www.youtube.com/watch?v=WpW36ldAqnM.be'
@@ -197,7 +197,106 @@ export const dummyShowsData = [
         "vote_average": 7.443,
         "vote_count": 23569,
         "runtime": 127,
-    }
+    },
+
+    // --- Coming Soon (add to dummyShowsData) ---
+{
+  _id: "upc_vega",
+  title: "Space Mission: Vega",
+  release_date: "2025-09-20",
+  runtime: 132,
+  genres: [{ name: "Sci-Fi" }, { name: "Adventure" }],
+  overview:
+    "A rookie ISRO pilot is forced into a deep-space rescue that uncovers a signal from beyond our galaxy.",
+  vote_average: 0,
+  poster_path: "https://picsum.photos/400/600?random=201",   // replace with your poster
+  backdrop_path: "https://picsum.photos/600/900?random=201", // MovieCard uses this
+  casts: [
+    { name: "Ishan Mehta",  profile_path: "https://i.pravatar.cc/100?img=11" },
+    { name: "Ayesha Rao",   profile_path: "https://i.pravatar.cc/100?img=12" }
+  ]
+},
+{
+  _id: "upc_monsoon",
+  title: "Monsoon Diaries",
+  release_date: "2025-10-04",
+  runtime: 118,
+  genres: [{ name: "Romance" }, { name: "Drama" }],
+  overview:
+    "Two strangers share a cab during Mumbai rains and end up rewriting each other’s lives.",
+  vote_average: 0,
+  poster_path: "https://picsum.photos/400/600?random=202",
+  backdrop_path: "https://picsum.photos/600/900?random=202",
+  casts: [
+    { name: "Ritika Sen",   profile_path: "https://i.pravatar.cc/100?img=13" },
+    { name: "Dev Anand",    profile_path: "https://i.pravatar.cc/100?img=14" }
+  ]
+},
+{
+  _id: "upc_heist",
+  title: "Desi Heist",
+  release_date: "2025-09-05",
+  runtime: 126,
+  genres: [{ name: "Action" }, { name: "Thriller" }],
+  overview:
+    "A small-town genius plans India’s cleanest bank heist—but the real twist is who he’s stealing from.",
+  vote_average: 0,
+  poster_path: "https://picsum.photos/400/600?random=203",
+  backdrop_path: "https://picsum.photos/600/900?random=203",
+  casts: [
+    { name: "Kabir Khan",   profile_path: "https://i.pravatar.cc/100?img=15" },
+    { name: "Naina Kapoor", profile_path: "https://i.pravatar.cc/100?img=16" }
+  ]
+},
+{
+  _id: "upc_khoj",
+  title: "Khoj: The Lost Temple",
+  release_date: "2025-10-25",
+  runtime: 124,
+  genres: [{ name: "Mystery" }, { name: "Adventure" }],
+  overview:
+    "An archaeologist follows ancient Sanskrit clues to a hidden temple deep in the Western Ghats.",
+  vote_average: 0,
+  poster_path: "https://picsum.photos/400/600?random=204",
+  backdrop_path: "https://picsum.photos/600/900?random=204",
+  casts: [
+    { name: "Ananya Pillai", profile_path: "https://i.pravatar.cc/100?img=17" },
+    { name: "Rohit Varma",   profile_path: "https://i.pravatar.cc/100?img=18" }
+  ]
+},
+{
+  _id: "upc_garuda",
+  title: "Project Garuda",
+  release_date: "2025-11-01",
+  runtime: 138,
+  genres: [{ name: "Action" }, { name: "Sci-Fi" }],
+  overview:
+    "A defence hacker races to stop a rogue AI that has seized a hypersonic drone over the Indian Ocean.",
+  vote_average: 0,
+  poster_path: "https://picsum.photos/400/600?random=205",
+  backdrop_path: "https://picsum.photos/600/900?random=205",
+  casts: [
+    { name: "Mira Das",     profile_path: "https://i.pravatar.cc/100?img=19" },
+    { name: "Arjun Suri",   profile_path: "https://i.pravatar.cc/100?img=20" }
+  ]
+},
+{
+  _id: "upc_stars",
+  title: "Under the Same Stars",
+  release_date: "2025-12-05",
+  runtime: 112,
+  genres: [{ name: "Family" }, { name: "Comedy" }],
+  overview:
+    "A chaotic joint family road-trip to Kutch turns into a journey of second chances.",
+  vote_average: 0,
+  poster_path: "https://picsum.photos/400/600?random=206",
+  backdrop_path: "https://picsum.photos/600/900?random=206",
+  casts: [
+    { name: "Raghav Iyer",  profile_path: "https://i.pravatar.cc/100?img=21" },
+    { name: "Pooja Menon",  profile_path: "https://i.pravatar.cc/100?img=22" }
+  ]
+}
+
 ]
 
 export const dummyDateTimeData = {
@@ -335,3 +434,116 @@ export const dummyBookingData = [
         "isPaid": true,
     },
 ]
+
+// assets/assets.js
+
+export const dummyTheaters = [
+
+  // ---- Indian style theaters ----
+  {
+    id: "th_pvr",
+    name: "PVR Cinemas",
+    address: "Phoenix Marketcity Mall, Kurla",
+    city: "Mumbai",
+    phone: "+91-22-4455-8899",
+    amenities: ["Gold Class", "IMAX", "Snacks", "Recliners"],
+    hours: "09:00 AM – 01:00 AM",
+  },
+  {
+    id: "th_inox",
+    name: "INOX Megaplex",
+    address: "R City Mall, Ghatkopar",
+    city: "Mumbai",
+    phone: "+91-22-2233-7744",
+    amenities: ["4DX", "Dolby Atmos", "Food Court", "Online Booking"],
+    hours: "09:00 AM – 12:30 AM",
+  },
+  {
+    id: "th_cinepolis",
+    name: "Cinépolis",
+    address: "Forum Mall, Koramangala",
+    city: "Bengaluru",
+    phone: "+91-80-2266-7788",
+    amenities: ["VIP Lounge", "3D", "Snacks", "Recliners"],
+    hours: "10:00 AM – 12:00 AM",
+  },
+  {
+    id: "th_sathyam",
+    name: "SPI Sathyam Cinemas",
+    address: "Royapettah, Mount Road",
+    city: "Chennai",
+    phone: "+91-44-4455-6677",
+    amenities: ["Dolby Atmos", "Luxury Seats", "Popcorn Studio"],
+    hours: "10:00 AM – 11:45 PM",
+  },
+  {
+    id: "th_prasads",
+    name: "Prasads IMAX",
+    address: "Necklace Road",
+    city: "Hyderabad",
+    phone: "+91-40-2233-8899",
+    amenities: ["IMAX", "Food Court", "Arcade", "Parking"],
+    hours: "09:30 AM – 12:15 AM",
+  },
+  {
+    id: "th_rajmandir",
+    name: "Rajmandir Cinema",
+    address: "Panch Batti, C-Scheme",
+    city: "Jaipur",
+    phone: "+91-141-222-7788",
+    amenities: ["Single Screen", "Royal Interiors", "Snacks"],
+    hours: "12:00 PM – 11:00 PM",
+  },
+  {
+    id: "th_asian",
+    name: "Asian Cinemas",
+    address: "Kukatpally",
+    city: "Hyderabad",
+    phone: "+91-40-6677-8899",
+    amenities: ["Multiplex", "Recliners", "Dolby Sound"],
+    hours: "10:00 AM – 12:00 AM",
+  },
+];
+
+
+// assets/dummySeatLayouts.js
+// assets/dummySeatLayouts.js (inside assets.js if you prefer)
+export const dummySeatLayouts = {
+  th_pvr: { 
+    rows: [["A", "B"], ["C", "D"], ["E", "F"], ["G", "H"]],
+    seatsPerRow: 8
+  },
+  th_inox: { 
+    rows: [["A", "B", "C"], ["D", "E"], ["F", "G", "H", "I"]],
+    seatsPerRow: 10
+  },
+  th_cinepolis: { 
+    rows: [["A"], ["B", "C", "D"], ["E", "F", "G"]],
+    seatsPerRow: 10
+  },
+  th_sathyam: { 
+    rows: [["A", "B"], ["C", "D", "E"], ["F", "G", "H"]],
+    seatsPerRow: 9
+  },
+  th_prasads: { 
+    rows: [["A", "B"], ["C", "D"], ["E", "F", "G"]],
+    seatsPerRow: 11
+  },
+  th_rajmandir: { 
+    rows: [["A"], ["B", "C"], ["D", "E"], ["F", "G"]],
+    seatsPerRow: 6
+  },
+  th_asian: { 
+    rows: [["A", "B"], ["C", "D", "E"], ["F", "G", "H", "I"]],
+    seatsPerRow: 10
+  }
+}
+
+
+
+
+
+
+
+
+

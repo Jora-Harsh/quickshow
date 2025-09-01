@@ -105,7 +105,7 @@ const MovieDetails = () => {
       <p className="text-lg font-medium mt-20 mb-8">You May Also Like</p>
 
       {/* Responsive, even grid for cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-4 justify-items-center">
         {dummyShowsData.slice(0, 4).map((movie, index) => (
           <MovieCard key={index} movie={movie} />
         ))}

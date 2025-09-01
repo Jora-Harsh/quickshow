@@ -5,7 +5,7 @@ import { Route, Routes, useLocation } from 'react-router-dom'
 import Home from './pages/home'
 import Movies from './pages/Movies'
 import MovieDetails from './pages/MovieDetails'
-import Seatlayout from './pages/Seatlayout'
+import Seatlayout from './pages/SeatLayout'
 import MyBookings from './pages/MyBookings'
 import Favorite from './pages/Favorite'
 import { Toaster } from 'react-hot-toast'
@@ -16,6 +16,9 @@ import DashBoard from './pages/admin/DashBoard'
 import AddShows from './pages/admin/AddShows'
 import ListShows from './pages/admin/ListShows'
 import ListBookings from './pages/admin/ListBookings'
+import TheaterList from './pages/TheaterList';
+import Theaters from './pages/Theaters';
+import Releases from './pages/Releases'; // 👈 add this
 
 const App = () => {
   const isAdminRoute = useLocation().pathname.startsWith('/admin')
@@ -32,6 +35,13 @@ const App = () => {
         <Route path='/movies/:id/:date' element={<Seatlayout />} />
         <Route path='/my-bookings' element={<MyBookings />} />
         <Route path='/favorite' element={<Favorite />} />
+        {/* --- */}
+        <Route path='/movies/:id/theaters' element={<TheaterList />} />
+        {/* <Route path='/movies/:id/:date/theaters' element={<TheaterList />} /> */}
+        <Route path="/theaters" element={<Theaters />} />
+        <Route path="/releases" element={<Releases />} />
+
+         {/* chatgpt-added */}
 
         <Route path='/admin/*' element={<Layout/>}>
             <Route index element={<DashBoard/>} />
