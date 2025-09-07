@@ -2,34 +2,30 @@
 import express from 'express';
 import cors from 'cors';
 import connectDB from './configs/db.js';         
-import { clerkMiddleware } from '@clerk/express'; 
-import { serve } from 'inngest/express';
-import { inngest, functions } from './inngest/index.js';
+import 'dotenv/config';
+import cookieParser  from 'cookie-parser';
+import authRouter from './routes/authRoutes.js';
+import userRouter from './routes/userRoutes.js';
 
 const app = express();
+const PORT = process.env.PORT || 3000;
 
 // ── middleware
 app.use(express.json());
-app.use(cors());
+app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
+app.use(cors({origin: "http://localhost:5173",credentials: true}));
 
-// Clerk might throw if keys missing; keep it optional-safe:
-try { app.use(clerkMiddleware()); } catch (e) {
-  console.warn('Clerk middleware skipped:', e?.message);
-}
+connectDB(); // database connection
 
-// ── routes
-app.get('/', (_req, res) => res.send('Server Is Live'));
-app.use('/api/inngest', serve({ client: inngest, functions }));
 
-// ── connect DB lazily so cold-start doesn’t crash the function
-(async () => {
-  try {
-    await connectDB();
-    console.log('DB connected');
-  } catch (e) {
-    console.error('DB connect failed (will retry on next cold start):', e?.message);
-  }
-})();
+// ── API ENDPOINTS
+app.get('/', (_req, res) => res.send('Server Is Live - Welcome to QuickShow!'));
+app.use('/api/auth', authRouter); // auth routes
+app.use('/api/user', userRouter); // user routes
 
-// ⛔️ No app.listen on Vercel
-export default app;
+
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+
+

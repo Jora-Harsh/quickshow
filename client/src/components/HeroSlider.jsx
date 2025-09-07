@@ -6,6 +6,8 @@ import 'swiper/css/navigation'
 import 'swiper/css/pagination'
 import { ArrowRight, CalendarIcon, ClockIcon } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
+// import { assets } from '../assets/index.js';
+import marvelLogo from '../assets/marvelLogo.svg';
 
 // Example movies data (replace with API or props)
 const movies = [
@@ -17,7 +19,7 @@ const movies = [
     genres: "Action | Adventure | Sci-Fi",
     description: "Lorem ipsum dolor sit amet, consectetur adipisicing elit. Idem possimus deleniti cumque dolore.",
     background: "/backgroundImage.png",
-    logo: "/marvelLogo.png",
+    logo: marvelLogo,
   },
   {
     id: 2,
@@ -26,8 +28,8 @@ const movies = [
     duration: "3h 2m",
     genres: "Action | Adventure | Drama",
     description: "Earth’s mightiest heroes must risk everything to defeat Thanos and restore balance.",
-    background: "/avengersEndgame.jpg",
-    logo: "/marvelLogo.png",
+    background: "/endGame.png",
+    logo: marvelLogo,
   },
   {
     id: 3,
@@ -37,7 +39,7 @@ const movies = [
     genres: "Action | Adventure | Sci-Fi",
     description: "T'Challa returns home as king of Wakanda but faces challenges that test his leadership.",
     background: "/blackPanther.jpg",
-    logo: "/marvelLogo.png",
+    logo: marvelLogo,
   },
 ]
 
@@ -49,7 +51,7 @@ const HeroSlider = () => {
       modules={[Navigation, Pagination, Autoplay]}
       navigation={false} // Add this prop
       pagination={{ clickable: true }}
-      autoplay={{ delay: 3000 }}
+      autoplay={{ delay: 4000 }}
       loop={true}
       className="w-full h-[70vh] sm:h-[80vh] lg:h-screen"
     >
