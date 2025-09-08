@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import axios from "axios";
 
 export default function Login() {
   const { login } = useAuth();
@@ -18,18 +17,14 @@ export default function Login() {
     try {
       const res = await login(form.email, form.password);
 
-      if (res.success) {
-        if (res.user.isAccountVerified) {
-          navigate("/"); // already verified → go home
-        } else {
-          // unverified → go to verify page
-          navigate("/verify");
-        }
+      if (res?.success) {
+        const verified = res.user?.isAccountVerified ?? false;
+        navigate(verified ? "/" : "/verify");
       } else {
-        setError(res.message);
+        setError(res?.message || "Login failed");
       }
     } catch (err) {
-      setError(err.response?.data?.message || "Login failed");
+      setError(err.response?.data?.message || err.message || "Login failed");
     } finally {
       setLoading(false);
     }
@@ -64,9 +59,7 @@ export default function Login() {
               <input
                 type={show ? "text" : "password"}
                 value={form.password}
-                onChange={(e) =>
-                  setForm({ ...form, password: e.target.value })
-                }
+                onChange={(e) => setForm({ ...form, password: e.target.value })}
                 required
                 className="w-full px-4 py-3 rounded-lg bg-[#1c1c1c] text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 placeholder-gray-500"
                 placeholder="••••••••"

@@ -8,83 +8,139 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // ✅ Load user on page refresh
+  const API_URL = import.meta.env.VITE_API_URL;
+
+  // -----------------------------
+  // Load user on page refresh
+  // -----------------------------
   useEffect(() => {
     const fetchUser = async () => {
       try {
         const res = await axios.post(
-          "http://localhost:3000/api/auth/is-authenticated",
+          `${API_URL}/api/auth/is-authenticated`,
           {},
           { withCredentials: true }
         );
 
         if (res.data.success) {
-          // Ensure isAccountVerified is included
-          const userData = {
-            ...res.data.user,
-            isAccountVerified: res.data.user.isAccountVerified || false,
-            token: res.data.token,
-          };
-          setUser(userData);
-          localStorage.setItem("user", JSON.stringify(userData));
+          setUser(res.data.user);
+          localStorage.setItem("user", JSON.stringify(res.data.user));
         } else {
           setUser(null);
+          localStorage.removeItem("user");
         }
       } catch (err) {
         setUser(null);
+        localStorage.removeItem("user");
       } finally {
         setLoading(false);
       }
     };
+
     fetchUser();
-  }, []);
+  }, [API_URL]);
 
+  // -----------------------------
+  // Login
+  // -----------------------------
   const login = async (email, password) => {
-    const res = await axios.post(
-      "http://localhost:3000/api/auth/login",
-      { email, password },
-      { withCredentials: true }
-    );
+    try {
+      const res = await axios.post(
+        `${API_URL}/api/auth/login`,
+        { email, password },
+        { withCredentials: true }
+      );
 
-    if (res.data.success) {
-      const userData = {
-        ...res.data.user,
-        isAccountVerified: res.data.user.isAccountVerified || false,
-      };
-      setUser(userData);
-      localStorage.setItem("user", JSON.stringify(userData));
+      if (res.data.success) {
+        setUser(res.data.user);
+        localStorage.setItem("user", JSON.stringify(res.data.user));
+      }
+
+      return res.data;
+    } catch (err) {
+      return { success: false, message: err.response?.data?.message || "Login failed" };
     }
-
-    return res.data;
   };
 
-  const register = async (name, email, password) => {
-    const res = await axios.post(
-      "http://localhost:3000/api/auth/register",
-      { name, email, password },
-      { withCredentials: true }
-    );
+  // -----------------------------
+  // Register (with optional profile pic)
+  // -----------------------------
+  const register = async (name, email, password, profilePicFile) => {
+    try {
+      const formData = new FormData();
+      formData.append("name", name);
+      formData.append("email", email);
+      formData.append("password", password);
+      if (profilePicFile) formData.append("profilePic", profilePicFile);
 
-    if (res.data.success) {
-      const userData = {
-        ...res.data.user,
-        isAccountVerified: res.data.user.isAccountVerified || false,
-      };
-      setUser(userData);
-      localStorage.setItem("user", JSON.stringify(userData));
+      const res = await axios.post(`${API_URL}/api/auth/register`, formData, {
+        withCredentials: true,
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      if (res.data.success) {
+        setUser(res.data.user);
+        localStorage.setItem("user", JSON.stringify(res.data.user));
+      }
+
+      return res.data;
+    } catch (err) {
+      console.error(err);
+      return { success: false, message: err.response?.data?.message || "Registration failed" };
     }
-
-    return res.data;
   };
 
+  // -----------------------------
+  // Logout
+  // -----------------------------
   const logout = async () => {
-    await axios.post("http://localhost:3000/api/auth/logout", {}, { withCredentials: true });
-    setUser(null);
-    localStorage.removeItem("user");
+    try {
+      await axios.post(`${API_URL}/api/auth/logout`, {}, { withCredentials: true });
+      setUser(null);
+      localStorage.removeItem("user");
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  // -----------------------------
+  // Upload Profile Picture (after login)
+  // -----------------------------
+  const uploadProfilePic = async (file) => {
+    try {
+      const formData = new FormData();
+      formData.append("profilePic", file);
+
+      const res = await axios.post(`${API_URL}/api/user/upload-profile-pic`, formData, {
+        withCredentials: true,
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      if (res.data.success) {
+        // Update user state with new profile pic
+        const updatedUser = { ...user, profilePic: res.data.profilePic };
+        setUser(updatedUser);
+        localStorage.setItem("user", JSON.stringify(updatedUser));
+      }
+
+      return res.data;
+    } catch (err) {
+      console.error("Upload profile picture failed:", err);
+      return { success: false, message: err.response?.data?.message || "Upload failed" };
+    }
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, register, logout, loading }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        loading,
+        login,
+        register,
+        logout,
+        uploadProfilePic,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

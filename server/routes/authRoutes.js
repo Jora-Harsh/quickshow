@@ -1,10 +1,11 @@
 import express from "express";
 import { isAuthenticated, login, logout, register, resetPassword, sendResetOtp, sendVerifyOtp, verifyEmail } from "../controllers/authController.js";
 import userAuth from "../middleware/userAuth.js";
+import upload from "../configs/multer.js";
 
 const authRouter = express.Router();
 
-authRouter.post('/register', register);
+authRouter.post('/register',upload.single('profilePic'), register);
 authRouter.post('/login', login);
 authRouter.post('/logout', logout);
 authRouter.post('/send-verify-otp', userAuth, sendVerifyOtp);
