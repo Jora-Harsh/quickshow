@@ -13,7 +13,6 @@ export default function Register() {
 
   const navigate = useNavigate();
 
-  // Handle file selection
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
     if (selectedFile && selectedFile.size > 10 * 1024 * 1024) {
@@ -25,13 +24,11 @@ export default function Register() {
     setError("");
   };
 
-  // Remove selected file
   const removeFile = () => {
     setFile(null);
     setPreview(null);
   };
 
-  // Handle form submit
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -48,45 +45,38 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-black px-4">
-      <div className="w-full max-w-sm bg-[#121212] rounded-xl shadow-xl p-6 space-y-5 border border-gray-800">
-        <h1 className="text-2xl font-bold text-white text-center tracking-tight">
-          Create Account
-        </h1>
-        <p className="text-center text-gray-400 text-sm">
-          Sign up to access your QuickShow account
-        </p>
+    <div className="min-h-screen flex items-center justify-center bg-black px-2">
+      <div className="w-full max-w-xs bg-[#121212] rounded-lg shadow-lg p-4 space-y-4 border border-gray-800">
+        <h1 className="text-xl font-bold text-white text-center">Create Account</h1>
+        <p className="text-center text-gray-400 text-xs">Sign up to access your QuickShow account</p>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Name */}
+        <form onSubmit={handleSubmit} className="space-y-3">
           <div>
-            <label className="block text-gray-300 mb-1">Name</label>
+            <label className="block text-gray-300 text-xs mb-1">Name</label>
             <input
               type="text"
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
               required
               placeholder="Your Name"
-              className="w-full px-3 py-2 rounded-lg bg-[#1c1c1c] text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 placeholder-gray-500"
+              className="w-full px-2 py-1.5 rounded bg-[#1c1c1c] text-white border border-gray-700 text-sm focus:outline-none focus:ring-1 focus:ring-pink-500"
             />
           </div>
 
-          {/* Email */}
           <div>
-            <label className="block text-gray-300 mb-1">Email</label>
+            <label className="block text-gray-300 text-xs mb-1">Email</label>
             <input
               type="email"
               value={form.email}
               onChange={(e) => setForm({ ...form, email: e.target.value })}
               required
               placeholder="you@example.com"
-              className="w-full px-3 py-2 rounded-lg bg-[#1c1c1c] text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 placeholder-gray-500"
+              className="w-full px-2 py-1.5 rounded bg-[#1c1c1c] text-white border border-gray-700 text-sm focus:outline-none focus:ring-1 focus:ring-pink-500"
             />
           </div>
 
-          {/* Password */}
           <div>
-            <label className="block text-gray-300 mb-1">Password</label>
+            <label className="block text-gray-300 text-xs mb-1">Password</label>
             <div className="relative">
               <input
                 type={show ? "text" : "password"}
@@ -94,38 +84,37 @@ export default function Register() {
                 onChange={(e) => setForm({ ...form, password: e.target.value })}
                 required
                 placeholder="••••••••"
-                className="w-full px-3 py-2 rounded-lg bg-[#1c1c1c] text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 placeholder-gray-500"
+                className="w-full px-2 py-1.5 rounded bg-[#1c1c1c] text-white border border-gray-700 text-sm focus:outline-none focus:ring-1 focus:ring-pink-500"
               />
               <button
                 type="button"
                 onClick={() => setShow(!show)}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-pink-500 text-sm"
+                className="absolute right-1 top-1/2 -translate-y-1/2 text-gray-400 hover:text-pink-500 text-xs"
               >
                 {show ? "Hide" : "Show"}
               </button>
             </div>
           </div>
 
-          {/* Profile Picture */}
           <div>
-            <label className="block text-gray-300 mb-1">Profile Picture</label>
+            <label className="block text-gray-300 text-xs mb-1">Profile Picture</label>
             <input
               type="file"
               accept="image/*"
               onChange={handleFileChange}
-              className="w-full text-gray-300"
+              className="w-full text-gray-300 text-sm"
             />
             {preview && (
-              <div className="mt-2 flex items-center gap-2">
+              <div className="mt-1 flex items-center gap-2">
                 <img
                   src={preview}
                   alt="preview"
-                  className="w-16 h-16 rounded-full object-cover border border-gray-700"
+                  className="w-12 h-12 rounded-full object-cover border border-gray-700"
                 />
                 <button
                   type="button"
                   onClick={removeFile}
-                  className="px-2 py-1 text-xs bg-red-600 rounded text-white hover:bg-red-500 transition"
+                  className="px-2 py-0.5 text-xs bg-red-600 rounded text-white hover:bg-red-500"
                 >
                   Remove
                 </button>
@@ -133,20 +122,18 @@ export default function Register() {
             )}
           </div>
 
-          {/* Error Message */}
-          {error && <p className="text-sm text-pink-500 text-center">{error}</p>}
+          {error && <p className="text-xs text-pink-500 text-center">{error}</p>}
 
-          {/* Submit */}
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-2 rounded-lg bg-pink-600 hover:bg-pink-700 text-white font-semibold transition-shadow shadow-md hover:shadow-lg"
+            className="w-full py-2 rounded bg-pink-600 hover:bg-pink-700 text-white text-sm font-semibold transition-shadow shadow-md"
           >
             {loading ? "Signing up..." : "Sign Up"}
           </button>
         </form>
 
-        <div className="flex justify-center text-sm text-gray-400">
+        <div className="flex justify-center text-xs text-gray-400">
           <button
             onClick={() => navigate("/login")}
             className="hover:text-pink-500 transition-colors"

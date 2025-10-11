@@ -114,19 +114,6 @@ const Navbar = () => {
                     </div>
                   </div>
                   <ul className="py-2">
-                    {!user.isAccountVerified && (
-                      <li>
-                        <button
-                          onClick={() => {
-                            navigate("/verify");
-                            setDropdownOpen(false);
-                          }}
-                          className="w-full text-left px-4 py-2 hover:bg-gray-100"
-                        >
-                          Verify Account
-                        </button>
-                      </li>
-                    )}
                     <li>
                       <button
                         onClick={() => {
@@ -227,17 +214,7 @@ const Navbar = () => {
           </Link>
 
           {/* Mobile actions */}
-          {user && !user.isAccountVerified && (
-            <button
-              onClick={() => {
-                navigate("/verify");
-                setIsOpen(false);
-              }}
-              className="w-full py-2 text-lg font-medium text-center bg-yellow-500 hover:bg-yellow-400 rounded-md text-white transition"
-            >
-              Verify Account
-            </button>
-          )}
+
           {user && (
             <>
               <button

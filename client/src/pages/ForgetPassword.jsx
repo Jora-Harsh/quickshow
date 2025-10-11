@@ -3,25 +3,35 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
 export default function ForgotPassword() {
-  const [step, setStep] = useState(1); // step 1: email, step 2: OTP + new password
-  const [form, setForm] = useState({ email: "", otp: "", newPassword: "" });
+  const [step, setStep] = useState(1); // Step 1: email, Step 2: OTP + new password
+  const [form, setForm] = useState({
+    email: localStorage.getItem("lastEmail") || "",
+    otp: "",
+    newPassword: ""
+  });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const navigate = useNavigate();
 
+  // Step 1: Send OTP
   const handleSendOtp = async (e) => {
     e.preventDefault();
-    setError(""); setSuccess(""); setLoading(true);
+    setError(""); 
+    setSuccess(""); 
+    setLoading(true);
+
     try {
       const res = await axios.post(
         "http://localhost:3000/api/auth/send-reset-otp",
         { email: form.email },
         { withCredentials: true }
       );
+
       if (res.data.success) {
         setStep(2);
         setSuccess("OTP sent to your email!");
+        localStorage.setItem("lastEmail", form.email); // save email
       } else {
         setError(res.data.message);
       }
@@ -32,15 +42,20 @@ export default function ForgotPassword() {
     }
   };
 
+  // Step 2: Reset password
   const handleResetPassword = async (e) => {
     e.preventDefault();
-    setError(""); setSuccess(""); setLoading(true);
+    setError(""); 
+    setSuccess(""); 
+    setLoading(true);
+
     try {
       const res = await axios.post(
         "http://localhost:3000/api/auth/reset-password",
         { email: form.email, otp: form.otp, newPassword: form.newPassword },
         { withCredentials: true }
       );
+
       if (res.data.success) {
         setSuccess("Password reset successful! Redirecting to login...");
         setTimeout(() => navigate("/login"), 2000);
@@ -101,9 +116,7 @@ export default function ForgotPassword() {
                 <input
                   type="password"
                   value={form.newPassword}
-                  onChange={(e) =>
-                    setForm({ ...form, newPassword: e.target.value })
-                  }
+                  onChange={(e) => setForm({ ...form, newPassword: e.target.value })}
                   required
                   className="w-full px-3 py-2 rounded-lg bg-[#1c1c1c] text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 placeholder-gray-500"
                   placeholder="••••••••"

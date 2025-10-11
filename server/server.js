@@ -7,6 +7,8 @@ import cookieParser  from 'cookie-parser';
 import authRouter from './routes/authRoutes.js';
 import userRouter from './routes/userRoutes.js';
 import path from "path";
+import showRouter from './routes/showRoutes.js';
+
 
 const __dirname = path.resolve(); // ESM safe
 
@@ -27,6 +29,8 @@ app.get('/', (_req, res) => res.send('Server Is Live - Welcome to QuickShow!'));
 app.use("/uploads", express.static(path.join(__dirname, "uploads"))); // serve static files from uploads folder
 app.use('/api/auth', authRouter); // auth routes
 app.use('/api/user', userRouter); // user routes
+
+app.use('/api/shows', showRouter); // show routes
 
 
 

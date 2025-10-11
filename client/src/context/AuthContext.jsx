@@ -56,6 +56,12 @@ export const AuthProvider = ({ children }) => {
         localStorage.setItem("user", JSON.stringify(res.data.user));
       }
 
+      if (res.data.user.isAdmin) {
+        window.location.href = "/admin"; // redirect admin to admin dashboard
+      } else {
+        window.location.href = "/"; // normal user
+      }
+
       return res.data;
     } catch (err) {
       return { success: false, message: err.response?.data?.message || "Login failed" };

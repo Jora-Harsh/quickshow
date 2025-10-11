@@ -14,7 +14,7 @@ const Layout = () => {
                 </div>
             </div>
 
-        </>
+        </> 
     )
 }
 

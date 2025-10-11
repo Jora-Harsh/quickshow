@@ -11,6 +11,7 @@ const userSchema = new mongoose.Schema({
     resetOtp: {type: String, default: ''},
     resetOtpExpireAt: {type: Number, default: 0},
     profilePic: { type: String, default: "" },
+    isAdmin: { type: Boolean, default: false },
 
     // image: {type: String, require: true}
 })
