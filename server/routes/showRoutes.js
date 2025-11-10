@@ -1,10 +1,20 @@
 import express from "express";
-import { addShow, getNowPlayingMovies } from "../controllers/showController.js";
+import {
+  addShow,
+  getAllShows,
+  getNowPlayingMovies,
+  getShow,
+  getRelatedMovies,
+  getShowsByMovieAndDate, // ✅ imported
+} from "../controllers/showController.js";
 
 const showRouter = express.Router();
 
-showRouter.get('/now-playing', getNowPlayingMovies)
-showRouter.post('/add', addShow);
+showRouter.get("/now-playing", getNowPlayingMovies);
+showRouter.post("/add", addShow);
+showRouter.get("/all", getAllShows);
+showRouter.get("/by-date", getShowsByMovieAndDate); // ✅ new route
+showRouter.get("/:movieId", getShow);
+showRouter.get("/:movieId/related", getRelatedMovies);
 
-
-export default showRouter
+export default showRouter;

@@ -1,21 +1,24 @@
-// import { verify } from "jsonwebtoken";
 import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema({
-    name: {type: String, require: true},
-    email: {type: String, require: true , unique: true},
-    password: {type: String, require: true},  
-    verifyOtp: {type: String,default: ''},
-    verifyOtpExpireAt: {type: Number, default: 0},
-    isAccountVerified: {type: Boolean, default: false},
-    resetOtp: {type: String, default: ''},
-    resetOtpExpireAt: {type: Number, default: 0},
-    profilePic: { type: String, default: "" },
-    isAdmin: { type: Boolean, default: false },
+  name: { type: String, required: true },
+  email: { type: String, required: true, unique: true },
+  password: { type: String, required: true },
+  verifyOtp: { type: String, default: "" },
+  verifyOtpExpireAt: { type: Number, default: 0 },
+  isAccountVerified: { type: Boolean, default: false },
+  resetOtp: { type: String, default: "" },
+  resetOtpExpireAt: { type: Number, default: 0 },
+  profilePic: { type: String, default: "" },
+  isAdmin: { type: Boolean, default: false },
+  favorites: [
+    {
+      movieId: { type: String, required: true },
+      title: { type: String },
+      poster_path: { type: String }
+    }
+  ]
+}, { timestamps: true });
 
-    // image: {type: String, require: true}
-})
-
-const userModel =  mongoose.models.user || mongoose.model('user', userSchema)
-
-export default userModel;   
+const userModel = mongoose.models.user || mongoose.model('user', userSchema);
+export default userModel;

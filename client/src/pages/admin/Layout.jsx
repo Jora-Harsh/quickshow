@@ -4,6 +4,7 @@ import AdminSidebar from '../../components/admin/AdminSidebar'
 import { Outlet } from 'react-router-dom'
 
 const Layout = () => {
+
     return (
         <>
             <AdminNavbar />

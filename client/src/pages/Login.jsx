@@ -4,7 +4,10 @@ import { useAuth } from "../context/AuthContext";
 
 export default function Login() {
   const { login } = useAuth();
-  const [form, setForm] = useState({ email: localStorage.getItem("lastEmail") || "", password: "" });
+  const [form, setForm] = useState({
+    email: "",
+    password: "",
+  });
   const [show, setShow] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -28,9 +31,6 @@ export default function Login() {
         } else {
           navigate("/"); // Normal verified user
         }
-
-        // Store email on successful login
-        localStorage.setItem("lastEmail", form.email);
       } else {
         setError(res?.message || "Login failed");
       }
@@ -42,8 +42,12 @@ export default function Login() {
   };
 
   const handleForgotPassword = () => {
-    // Store current email before navigating
-    if (form.email) localStorage.setItem("lastEmail", form.email);
+    // ✅ Store only when forgot password is clicked
+    if (form.email.trim() !== "") {
+      sessionStorage.setItem("forgetEmail", form.email);
+    } else {
+      sessionStorage.removeItem("forgetEmail");
+    }
     navigate("/forgot");
   };
 
@@ -57,10 +61,7 @@ export default function Login() {
           <input
             type="email"
             value={form.email}
-            onChange={(e) => {
-              setForm({ ...form, email: e.target.value });
-              localStorage.setItem("lastEmail", e.target.value); // store on typing
-            }}
+            onChange={(e) => setForm({ ...form, email: e.target.value })}
             placeholder="Email"
             required
             className="w-full px-3 py-2 rounded-lg bg-[#1c1c1c] text-white border border-gray-700 focus:ring-2 focus:ring-pink-500 placeholder-gray-500"

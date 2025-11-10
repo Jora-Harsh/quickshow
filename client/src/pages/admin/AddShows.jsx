@@ -1,33 +1,90 @@
-import React, { useEffect, useState } from 'react'
-import { dummyShowsData } from '../../assets/assets';
-import Loading from '../../components/Loading';
-import Title from '../../components/admin/Title';
-import { CheckIcon, DeleteIcon, StarIcon } from 'lucide-react';
-import { kConverter } from '../../lib/kConverter';
+import React, { useEffect, useState } from "react";
+import Loading from "../../components/Loading";
+import Title from "../../components/admin/Title";
+import { CheckIcon, DeleteIcon, StarIcon, ChevronDown } from "lucide-react";
+import { kConverter } from "../../lib/kConverter";
+import { useAuth } from "../../context/AuthContext";
+import { toast } from "react-hot-toast";
 
 const AddShows = () => {
+  const { axios, image_base_url } = useAuth();
   const currency = import.meta.env.VITE_CURRENCY;
+
   const [nowPlayingMovies, setNowPlayingMovies] = useState([]);
   const [selectedMovie, setSelectedMovie] = useState(null);
   const [dateTimeSelection, setDateTimeSelection] = useState({});
   const [dateTimeInput, setDateTimeInput] = useState("");
   const [showPrice, setShowPrice] = useState("");
+  const [selectedTheater, setSelectedTheater] = useState("N/A");
 
+  // ✅ Updated static theater list (matches your SeatLayout)
+  const theaters = ["INOX", "PVR", "CINEPOLIS"];
+
+  // 🔹 Fetch movies currently playing
   const fetchNowPlayingMovies = async () => {
-    setNowPlayingMovies(dummyShowsData);
+    try {
+      const { data } = await axios.get("/api/shows/now-playing", {
+        withCredentials: true,
+      });
+      if (data.success) setNowPlayingMovies(data.movies);
+    } catch (error) {
+      console.error("Error fetching now playing movies:", error);
+    }
   };
 
-  const formatDateTime = (iso) => {
-    if (!iso) return "";
-    return new Date(iso).toLocaleString("en-CA", {
-      year: "numeric",
-      month: "short",
-      day: "2-digit",
+  // 🔹 Add show handler
+  const handleAddShow = async () => {
+    if (!selectedMovie) return toast.error("Please select a movie first!");
+    if (!showPrice) return toast.error("Please enter a show price!");
+    if (Object.keys(dateTimeSelection).length === 0)
+      return toast.error("Please add at least one date & time!");
+    if (selectedTheater === "N/A")
+      return toast.error("Please select a theater!");
+
+    try {
+      const showsInput = Object.entries(dateTimeSelection).map(([date, times]) => ({
+        date,
+        time: times,
+      }));
+
+      const { data } = await axios.post(
+        "/api/shows/add",
+        {
+          movieId: selectedMovie,
+          showsInput,
+          showPrice,
+          theater: selectedTheater,
+        },
+        { withCredentials: true }
+      );
+
+      if (data.success) {
+        toast.success("🎉 Show added successfully!");
+        setSelectedMovie(null);
+        setDateTimeSelection({});
+        setShowPrice("");
+        setDateTimeInput("");
+        setSelectedTheater("N/A");
+      } else toast.error(data.message || "Failed to add show!");
+    } catch (err) {
+      console.error("Error adding show:", err);
+      toast.error("Server error while adding show!");
+    }
+  };
+
+  // 🔹 Format time for readability
+  const formatTo12Hour = (time) => {
+    const [hour, minute] = time.split(":");
+    const date = new Date();
+    date.setHours(hour, minute);
+    return date.toLocaleTimeString("en-US", {
       hour: "2-digit",
       minute: "2-digit",
+      hour12: true,
     });
   };
 
+  // 🔹 Add new date/time
   const handleDateTimeAdd = () => {
     if (!dateTimeInput) return;
     const [date, time] = dateTimeInput.split("T");
@@ -41,6 +98,7 @@ const AddShows = () => {
     });
   };
 
+  // 🔹 Remove a selected time
   const handleRemoveTime = (date, time) => {
     setDateTimeSelection((prev) => {
       const filteredTimes = prev[date].filter((t) => t !== time);
@@ -56,25 +114,31 @@ const AddShows = () => {
     fetchNowPlayingMovies();
   }, []);
 
+  // 🔹 MAIN UI
   return nowPlayingMovies.length > 0 ? (
     <>
       <Title text1="Add" text2="Shows" />
 
+      {/* 🎬 Now Playing Movies */}
       <div className="mt-10">
         <p className="text-lg font-medium">Now Playing Movies</p>
-
-        {/* Responsive grid for movie cards */}
         <div className="mt-4">
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
             {nowPlayingMovies.map((movie) => (
               <div
                 key={movie.id}
-                className="relative cursor-pointer transition duration-300 hover:-translate-y-1"
-                onClick={() => setSelectedMovie(movie.id)}
+                className={`relative cursor-pointer transition-all duration-300 hover:-translate-y-1 ${
+                  selectedMovie === movie.id ? "scale-105" : ""
+                }`}
+                onClick={() =>
+                  setSelectedMovie((prev) =>
+                    prev === movie.id ? null : movie.id
+                  )
+                }
               >
-                <div className="relative rounded-lg overflow-hidden">
+                <div className="relative rounded-lg overflow-hidden shadow-md hover:shadow-lg">
                   <img
-                    src={movie.poster_path}
+                    src={image_base_url + movie.poster_path}
                     alt={movie.title}
                     className="w-full aspect-[2/3] object-cover brightness-90"
                   />
@@ -88,12 +152,14 @@ const AddShows = () => {
                 </div>
 
                 {selectedMovie === movie.id && (
-                  <div className="absolute top-2 right-2 flex items-center justify-center bg-primary h-6 w-6 rounded">
+                  <div className="absolute top-2 right-2 bg-primary h-6 w-6 rounded flex items-center justify-center">
                     <CheckIcon className="w-4 h-4 text-white" strokeWidth={2.5} />
                   </div>
                 )}
 
-                <p className="font-medium truncate mt-2">{movie.title}</p>
+                <p className="font-medium truncate mt-2 text-gray-800">
+                  {movie.title}
+                </p>
                 <p className="text-gray-400 text-sm">{movie.release_date}</p>
               </div>
             ))}
@@ -101,10 +167,10 @@ const AddShows = () => {
         </div>
       </div>
 
-      {/* Show Price Input */}
+      {/* 💰 Show Price */}
       <div className="mt-8">
         <label className="block text-sm font-medium mb-2">Show Price</label>
-        <div className="inline-flex items-center gap-2 border border-gray-600 px-3 py-2 rounded-md w-full sm:w-auto">
+        <div className="inline-flex items-center gap-2 border border-gray-300 px-3 py-2 rounded-md w-full sm:w-auto shadow-sm">
           <p className="text-gray-400 text-sm">{currency}</p>
           <input
             min={0}
@@ -117,11 +183,10 @@ const AddShows = () => {
         </div>
       </div>
 
-      {/* Date & Time Selection */}
+      {/* 📅 Date & Time Selection */}
       <div className="mt-6">
-        <label className="block text-sm font-medium mb-2">Select Date and Time</label>
-        {/* <div className="flex flex-col sm:flex-row sm:items-center gap-3 border border-gray-600 p-3 rounded-lg w-full sm:w-auto"> */}
-          <div className="flex flex-col sm:flex-row sm:items-center gap-3 border border-gray-600 p-3 rounded-lg w-full max-w-md">
+        <label className="block text-sm font-medium mb-2">Select Date & Time</label>
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 border border-gray-300 p-3 rounded-lg w-full max-w-md shadow-sm">
           <input
             type="datetime-local"
             value={dateTimeInput}
@@ -130,17 +195,41 @@ const AddShows = () => {
           />
           <button
             onClick={handleDateTimeAdd}
-            className="bg-primary/80 text-white px-4 py-2 text-sm rounded-lg hover:bg-primary transition w-full sm:w-auto"
+            className="bg-primary/90 text-white px-5 py-2 text-sm rounded-md hover:bg-primary transition w-full sm:w-auto"
           >
             Add Time
           </button>
         </div>
       </div>
 
-      {/* Display selected time */}
+      {/* 🎭 Theater Dropdown */}
+      <div className="mt-6">
+        <label className="block text-sm font-medium mb-2">Select Theater</label>
+        <div className="relative w-full max-w-md">
+          <select
+            value={selectedTheater}
+            onChange={(e) => setSelectedTheater(e.target.value)}
+            className="appearance-none border border-gray-300 rounded-md px-3 py-2 bg-white text-gray-700 focus:ring-2 focus:ring-primary focus:border-primary outline-none w-full shadow-sm"
+          >
+            <option value="N/A" disabled>
+              Select Theater
+            </option>
+            {theaters.map((theater, index) => (
+              <option key={index} value={theater}>
+                {theater}
+              </option>
+            ))}
+          </select>
+          <ChevronDown className="absolute right-3 top-3 text-gray-500 w-5 h-5 pointer-events-none" />
+        </div>
+      </div>
+
+      {/* 🕒 Selected Times */}
       {Object.keys(dateTimeSelection).length > 0 && (
         <div className="mt-6">
-          <h2 className="mb-2 text-base sm:text-lg font-semibold">Selected Date-Time</h2>
+          <h2 className="mb-2 text-base sm:text-lg font-semibold text-gray-800">
+            Selected Date & Time
+          </h2>
           <ul className="space-y-3">
             {Object.entries(dateTimeSelection).map(([date, times]) => (
               <li key={date}>
@@ -149,9 +238,9 @@ const AddShows = () => {
                   {times.map((time) => (
                     <div
                       key={time}
-                      className="border border-primary px-2 py-1 flex items-center rounded"
+                      className="border border-primary px-2 py-1 flex items-center rounded bg-primary/10 text-primary"
                     >
-                      <span>{time}</span>
+                      <span>{formatTo12Hour(time)}</span>
                       <DeleteIcon
                         onClick={() => handleRemoveTime(date, time)}
                         width={15}
@@ -166,7 +255,11 @@ const AddShows = () => {
         </div>
       )}
 
-      <button className="bg-primary text-white px-6 sm:px-8 py-2 mt-6 rounded hover:bg-primary/90 transition">
+      {/* 🎯 Submit */}
+      <button
+        onClick={handleAddShow}
+        className="bg-primary text-white px-6 sm:px-8 py-2 mt-8 rounded-md shadow-md hover:bg-primary/90 transition"
+      >
         Add Show
       </button>
     </>

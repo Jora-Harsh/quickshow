@@ -1,11 +1,14 @@
 import { StarIcon } from "lucide-react";
-import React from "react";
+import React, { use } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import timeFormate from "../lib/timeFormate";
+import { useAuth } from "../context/AuthContext";
 
 const MovieCard = ({ movie }) => {
   const navigate = useNavigate();
   const { search } = useLocation();
+
+  const {image_base_url} = useAuth();
 
   const today = new Date();
   const releaseDate = new Date(movie.release_date);
@@ -28,7 +31,7 @@ const MovieCard = ({ movie }) => {
     <div className="flex flex-col justify-between p-3 bg-gray-800 rounded-xl hover:translate-y-1 transition duration-300 w-[90%] max-w-[220px] mx-auto sm:w-full sm:max-w-[200px]">
       <img
         onClick={goToMovie}
-        src={movie.backdrop_path}
+        src={ image_base_url+movie.backdrop_path}
         alt={movie.title}
         className="rounded-lg w-full object-cover object-center cursor-pointer aspect-[2/2.6]"
       />

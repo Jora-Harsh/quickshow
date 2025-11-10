@@ -1,14 +1,20 @@
 // src/context/AuthContext.jsx
 import { createContext, useContext, useEffect, useState } from "react";
 import axios from "axios";
+import { toast } from "react-hot-toast";
+
+axios.defaults.baseURL = import.meta.env.VITE_API_URL;
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [shows, setShows] = useState([]);
+  const [favoritesMovies, setFavoriteMovies] = useState([]);
 
   const API_URL = import.meta.env.VITE_API_URL;
+  const image_base_url = import.meta.env.VITE_TMDB_IMAGE_BASE_URL;
 
   // -----------------------------
   // Load user on page refresh
@@ -16,12 +22,7 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const res = await axios.post(
-          `${API_URL}/api/auth/is-authenticated`,
-          {},
-          { withCredentials: true }
-        );
-
+        const res = await axios.post(`${API_URL}/api/auth/is-authenticated`, {}, { withCredentials: true });
         if (res.data.success) {
           setUser(res.data.user);
           localStorage.setItem("user", JSON.stringify(res.data.user));
@@ -36,7 +37,6 @@ export const AuthProvider = ({ children }) => {
         setLoading(false);
       }
     };
-
     fetchUser();
   }, [API_URL]);
 
@@ -45,22 +45,15 @@ export const AuthProvider = ({ children }) => {
   // -----------------------------
   const login = async (email, password) => {
     try {
-      const res = await axios.post(
-        `${API_URL}/api/auth/login`,
-        { email, password },
-        { withCredentials: true }
-      );
-
+      const res = await axios.post(`${API_URL}/api/auth/login`, { email, password }, { withCredentials: true });
       if (res.data.success) {
         setUser(res.data.user);
         localStorage.setItem("user", JSON.stringify(res.data.user));
       }
 
-      if (res.data.user.isAdmin) {
-        window.location.href = "/admin"; // redirect admin to admin dashboard
-      } else {
-        window.location.href = "/"; // normal user
-      }
+      // Redirect based on role
+      if (res.data.user.isAdmin) window.location.href = "/admin";
+      else window.location.href = "/";
 
       return res.data;
     } catch (err) {
@@ -69,7 +62,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   // -----------------------------
-  // Register (with optional profile pic)
+  // Register
   // -----------------------------
   const register = async (name, email, password, profilePicFile) => {
     try {
@@ -110,7 +103,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   // -----------------------------
-  // Upload Profile Picture (after login)
+  // Upload Profile Picture
   // -----------------------------
   const uploadProfilePic = async (file) => {
     try {
@@ -123,7 +116,6 @@ export const AuthProvider = ({ children }) => {
       });
 
       if (res.data.success) {
-        // Update user state with new profile pic
         const updatedUser = { ...user, profilePic: res.data.profilePic };
         setUser(updatedUser);
         localStorage.setItem("user", JSON.stringify(updatedUser));
@@ -136,6 +128,61 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // -----------------------------
+  // Fetch Shows
+  // -----------------------------
+  const fetchShows = async () => {
+    try {
+      const { data } = await axios.get(`${API_URL}/api/shows/all`);
+      if (data.success) setShows(data.shows);
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to fetch shows");
+    }
+  };
+
+  useEffect(() => {
+    fetchShows();
+  }, []);
+
+  // -----------------------------
+  // Fetch Favorite Movies
+  // -----------------------------
+  const fetchFavoriteMovies = async () => {
+    if (!user) return;
+    try {
+      const { data } = await axios.get(`${API_URL}/api/favorites`, { withCredentials: true });
+      if (data.success) setFavoriteMovies(data.favorites || []);
+    } catch (err) {
+      console.error("Fetch favorite movies error:", err);
+    }
+  };
+
+  useEffect(() => {
+    if (user) fetchFavoriteMovies();
+  }, [user]);
+
+  // -----------------------------
+  // Toggle Favorite Movie
+  // -----------------------------
+  const toggleFavoriteMovie = async ({ movieId, title, poster_path }) => {
+    if (!user) return toast.error("Login to manage favorites");
+    try {
+      const { data } = await axios.post(`${API_URL}/api/favorites/toggle`, {
+        movieId,
+        title,
+        poster_path
+      }, { withCredentials: true });
+
+      if (data.success) {
+        setFavoriteMovies(data.favorites);
+        toast.success(data.message);
+      } else toast.error(data.message || "Failed to update favorite");
+    } catch (err) {
+      console.error("Toggle favorite error:", err);
+      toast.error("Failed to update favorite");
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -145,6 +192,13 @@ export const AuthProvider = ({ children }) => {
         register,
         logout,
         uploadProfilePic,
+        shows,
+        favoritesMovies,
+        fetchFavoriteMovies,
+        toggleFavoriteMovie,
+        image_base_url,
+        API_URL,
+        axios,
       }}
     >
       {children}

@@ -14,7 +14,7 @@
     "@clerk/express": "^1.7.24",
     "@clerk/nextjs": "^6.28.1",
     "@tailwindcss/vite": "^4.1.11",
-    "axios": "^1.11.0",
+    "axios": "^1.12.2",
     "inngest": "^3.40.1",
     "lucide-react": "^0.525.0",
     "react": "^19.1.1",

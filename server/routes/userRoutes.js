@@ -12,7 +12,7 @@ import express from 'express';
 import multer from 'multer';
 import path from 'path';
 import userAuth from '../middleware/userAuth.js';
-import { getUsersData, uploadProfilePic } from '../controllers/userController.js';
+import { addFavorite, getFavorites, getUsersData, removeFavorite, uploadProfilePic } from '../controllers/userController.js';
 
 const userRouter = express.Router();
 
@@ -32,5 +32,10 @@ userRouter.get('/data', userAuth, getUsersData);
 
 // ✅ new route for profile picture upload
 userRouter.post('/upload-profile-pic', userAuth, upload.single("profilePic"), uploadProfilePic);
+
+userRouter.post("/favorites", userAuth, addFavorite);
+userRouter.delete("/favorites", userAuth, removeFavorite);
+userRouter.get("/favorites", userAuth, getFavorites);
+
 
 export default userRouter;

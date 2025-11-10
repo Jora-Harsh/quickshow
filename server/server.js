@@ -8,6 +8,9 @@ import authRouter from './routes/authRoutes.js';
 import userRouter from './routes/userRoutes.js';
 import path from "path";
 import showRouter from './routes/showRoutes.js';
+import bookingRouter from './routes/bookingRoutes.js';
+import adminRouter from './routes/adminRoutes.js';
+import favoriteRoutes from "./routes/favoriteRoutes.js";
 
 
 const __dirname = path.resolve(); // ESM safe
@@ -31,6 +34,9 @@ app.use('/api/auth', authRouter); // auth routes
 app.use('/api/user', userRouter); // user routes
 
 app.use('/api/shows', showRouter); // show routes
+app.use('/api/bookings', bookingRouter); // booking routes
+app.use('/api/admin', adminRouter); // admin routes
+app.use("/api/favorites", favoriteRoutes);
 
 
 

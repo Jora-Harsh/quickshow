@@ -1,42 +1,47 @@
-import React, { useEffect, useState } from 'react'
-import { dummyShowsData } from '../../assets/assets';
-import Loading from '../../components/Loading';
-import Title from '../../components/admin/Title';
+import React, { useEffect, useState } from "react";
+import Loading from "../../components/Loading";
+import Title from "../../components/admin/Title";
+import BlurCircle from "../../components/BlurCircle";
+import { useAuth } from "../../context/AuthContext";
+import toast from "react-hot-toast";
 
 const ListShows = () => {
-  const currency = import.meta.env.VITE_CURRENCY;
-
+  const currency = import.meta.env.VITE_CURRENCY || "$";
   const [shows, setShows] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const { axios, user, image_base_url } = useAuth(); // from AuthContext
+
+  // Format date & time nicely (12-hour format)
   const formatDateTime = (iso) => {
     if (!iso) return "";
-    return new Date(iso).toLocaleString("en-CA", {
+    return new Date(iso).toLocaleString("en-IN", {
       year: "numeric",
       month: "short",
       day: "2-digit",
       hour: "2-digit",
       minute: "2-digit",
+      hour12: true,
     });
   };
 
+  // Fetch all shows from backend
   const getAllShows = async () => {
     try {
-      setShows([
-        {
-          movie: dummyShowsData[0],
-          showDateTime: "2025-06-30T02:30:00.0002",
-          showPrice: 59,
-          occupiedSeats: {
-            A1: "user_1",
-            B1: "user_3",
-            C1: "user_3",
-          },
-        },
-      ]);
-      setLoading(false);
+      const { data } = await axios.get("/api/admin/all-shows", {
+        withCredentials: true,
+      });
+
+      if (data.success) {
+        setShows(data.shows);
+      } else {
+        toast.error("Failed to load shows");
+      }
     } catch (error) {
-      console.error(error);
+      console.error("Error fetching shows:", error);
+      toast.error("Something went wrong while fetching shows");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -44,52 +49,70 @@ const ListShows = () => {
     getAllShows();
   }, []);
 
-  return !loading ? (
+  if (loading) return <Loading />;
+
+  return (
     <>
       <Title text1="List" text2="Shows" />
 
-      {/* Responsive table wrapper */}
-      <div className="mt-6 w-full">
-        <div className="overflow-x-auto -mx-2 sm:mx-0">
-          <div className="inline-block min-w-full align-middle px-2 sm:px-0">
-            <table className="min-w-[640px] sm:min-w-full w-full border-collapse rounded-md overflow-hidden text-nowrap">
+      <div className="relative mt-6">
+        <BlurCircle top="-80px" left="0" />
+
+        <div className="bg-primary/20 border border-primary/30 rounded-lg overflow-hidden shadow-md">
+          <div className="overflow-x-auto">
+            <table className="min-w-[640px] w-full text-sm text-white">
               <thead>
-                <tr className="bg-primary/20 text-left text-white">
-                  <th className="p-2 sm:p-3 font-medium pl-5">Movie Name</th>
-                  <th className="p-2 sm:p-3 font-medium">Show Time</th>
-                  <th className="p-2 sm:p-3 font-medium">Total Booking</th>
-                  <th className="p-2 sm:p-3 font-medium">Earnings</th>
+                <tr className="bg-primary/30 uppercase tracking-wide text-xs">
+                  <th className="p-3 text-left font-medium pl-5">Movie</th>
+                  <th className="p-3 text-left font-medium">Show Time</th>
+                  <th className="p-3 text-left font-medium">Total Bookings</th>
+                  <th className="p-3 text-left font-medium">Earnings</th>
                 </tr>
               </thead>
-              <tbody className="text-xs sm:text-sm font-light">
-                {shows.map((show, index) => (
-                  <tr
-                    key={index}
-                    className="border-b border-primary/10 bg-primary/5 even:bg-primary/10"
-                  >
-                    <td className="p-2 sm:p-3 min-w-40 pl-5">{show.movie.title}</td>
-                    <td className="p-2 sm:p-3">{formatDateTime(show.showDateTime)}</td>
-                    <td className="p-2 sm:p-3">
-                      {Object.keys(show.occupiedSeats).length}
-                    </td>
-                    <td className="p-2 sm:p-3">
-                      {currency} {Object.keys(show.occupiedSeats).length * show.showPrice}
-                    </td>
-                  </tr>
-                ))}
+
+              <tbody>
+                {shows.map((show, index) => {
+                  const totalBookings = Object.keys(show.occupiedSeats || {}).length;
+                  const totalEarnings = totalBookings * (show.showPrice || 0);
+
+                  return (
+                    <tr
+                      key={index}
+                      className="border-b border-primary/20 bg-primary/10 even:bg-primary/15 hover:bg-primary/25 transition duration-200"
+                    >
+                      <td className="p-3 pl-5 flex items-center gap-3 font-medium text-white/90">
+                        {show.movie?.poster_path && (
+                          <img
+                            src={image_base_url + show.movie.poster_path}
+                            alt={show.movie.title}
+                            className="w-10 h-14 object-cover rounded-md border border-primary/20"
+                          />
+                        )}
+                        {show.movie?.title || "Untitled"}
+                      </td>
+
+                      <td className="p-3 text-gray-200">
+                        {formatDateTime(show.showDateTime)}
+                      </td>
+
+                      <td className="p-3 text-gray-200">{totalBookings}</td>
+
+                      <td className="p-3 text-gray-100 font-semibold">
+                        {currency} {totalEarnings}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
         </div>
 
-        {/* Optional helper text for mobile */}
-        <p className="mt-2 text-xs text-gray-400 sm:hidden">
-          Tip: swipe left/right to see more.
+        <p className="mt-2 text-xs text-gray-400 sm:hidden text-center">
+          💡 Tip: Swipe left/right to view the full table.
         </p>
       </div>
     </>
-  ) : (
-    <Loading />
   );
 };
 

@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
 export default function ForgotPassword() {
   const [step, setStep] = useState(1); // Step 1: email, Step 2: OTP + new password
   const [form, setForm] = useState({
-    email: localStorage.getItem("lastEmail") || "",
+    email: "",
     otp: "",
     newPassword: ""
   });
@@ -13,6 +13,14 @@ export default function ForgotPassword() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const navigate = useNavigate();
+
+  // ✅ Load stored email from sessionStorage (set in Login.jsx)
+  useEffect(() => {
+    const storedEmail = sessionStorage.getItem("forgetEmail");
+    if (storedEmail) {
+      setForm((prev) => ({ ...prev, email: storedEmail }));
+    }
+  }, []);
 
   // Step 1: Send OTP
   const handleSendOtp = async (e) => {
@@ -31,7 +39,8 @@ export default function ForgotPassword() {
       if (res.data.success) {
         setStep(2);
         setSuccess("OTP sent to your email!");
-        localStorage.setItem("lastEmail", form.email); // save email
+        // ✅ Save temporarily for OTP step (if user reloads mid-process)
+        sessionStorage.setItem("forgetEmail", form.email);
       } else {
         setError(res.data.message);
       }
@@ -58,6 +67,10 @@ export default function ForgotPassword() {
 
       if (res.data.success) {
         setSuccess("Password reset successful! Redirecting to login...");
+
+        // ✅ Clear stored email for security
+        sessionStorage.removeItem("forgetEmail");
+
         setTimeout(() => navigate("/login"), 2000);
       } else {
         setError(res.data.message);

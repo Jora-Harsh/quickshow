@@ -72,7 +72,7 @@ const Navbar = () => {
         <div className="hidden lg:flex items-center gap-6 text-white font-semibold">
           <Link to="/">Home</Link>
           <Link to="/movies">Movies</Link>
-          <Link to="/theaters">Theaters</Link>
+          {/* <Link to="/theaters">Theaters</Link> */}
           <Link to="/releases">Releases</Link>
           <Link to="/favorite">Favourites</Link>
         </div>
@@ -191,13 +191,13 @@ const Navbar = () => {
           >
             Movies
           </Link>
-          <Link
+          {/* <Link
             onClick={() => setIsOpen(false)}
             to="/theaters"
             className="w-full text-center py-2 text-lg font-medium rounded-md hover:bg-pink-600 transition text-white"
           >
             Theaters
-          </Link>
+          </Link> */}
           <Link
             onClick={() => setIsOpen(false)}
             to="/releases"
