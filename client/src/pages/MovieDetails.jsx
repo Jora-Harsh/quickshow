@@ -78,7 +78,7 @@ const MovieDetails = () => {
 
   useEffect(() => { getShow(); }, [id]);
   useEffect(() => { if (show?.movie) checkFavoriteStatus(); }, [show]);
-  useEffect(() => { if (show?.movie) fetchYouMayLike(); }, [show]);
+  // useEffect(() => { if (show?.movie) fetchYouMayLike(); }, [show]);
 
   if (!show) return <Loading />;
 

@@ -1,76 +1,105 @@
-// Function to check availability of selected seats for a movie
+import Booking from "../models/Bookings.js";
+import Show from "../models/Show.js";
 
-import Show from "../models/Show.js"
-
-const checkSeatAvailability = async (showId, selectedSeats) => {
-    try {
-       const showData = await Show.findById(showId);
-       if (!showData) return false;
-
-         const occupiedSeats = showData.occupiedSeats;
-
-         const isAnySeatTaken = selectedSeats.some(seat => occupiedSeats[seat]);
-         return !isAnySeatTaken;
-    } catch (error) {
-        console.error("Error checking seat availability:", error);
-        return false;
-    }
-
-}
-
+// -----------------------------
+// 📦 Create New Booking
+// -----------------------------
 export const createBooking = async (req, res) => {
-    try {
-        const {userId} = req.auth();
-        const  {showId, selectedSeats} = req.body;
-        const {origin} = req.headers;
+  try {
+    const { showId, bookedSeats, amount, theater, date } = req.body;
 
-        // Check if seats are available
-        const isAvailable = await checkSeatAvailability(showId, selectedSeats);
-        if (!isAvailable) {
-            return res.status(400).json({ success: false, message: "One or more selected seats are already booked." });
-        }
-
-        // Get the show details
-        const showData = await Show.findById(showId).populate('movie');
-
-        //Create a new booking
-        const booking = await Booking.create({
-
-            user: userId,
-            show: showId,
-            amount: showData.price * selectedSeats.length,
-            bookedSeats: selectedSeats
-
-        })
-
-        selectedSeats.map((seat) => {
-            showData.occupiedSeats[seat] = userId;
-        })
-
-        showData.markModified('occupiedSeats');
-        await showData.save();
-
-
-        // Stripe Gateway Initialize
-
-        res.json({ success: true, message: "Booking created successfully"  });
-    } catch (error) {
-        console.error("createBooking error:", error);
-        res.status(500).json({ success: false, message: error.message });
+    if (!showId || !bookedSeats || !amount || !theater || !date) {
+      return res.status(400).json({ success: false, message: "Missing booking details" });
     }
-}
 
+    // Create booking with theater + date
+    const booking = await Booking.create({
+      user: req.user._id,
+      show: showId,
+      theater,
+      date,
+      amount,
+      bookedSeats,
+      isPaid: false,
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: "Booking created successfully",
+      booking,
+    });
+  } catch (error) {
+    console.error("❌ Error creating booking:", error);
+    return res.status(500).json({ success: false, message: "Server error while creating booking" });
+  }
+};
+
+// -----------------------------
+// 🎟️ Get User Bookings
+// -----------------------------
+export const getMyBookings = async (req, res) => {
+  try {
+    const bookings = await Booking.find({ user: req.user._id })
+      .populate({
+        path: "show",
+        populate: {
+          path: "movie",
+          model: "Movie",
+        },
+      })
+      .sort({ createdAt: -1 });
+
+    return res.status(200).json({
+      success: true,
+      bookings,
+    });
+  } catch (error) {
+    console.error("❌ Error fetching user bookings:", error);
+    return res.status(500).json({ success: false, message: "Server error while fetching bookings" });
+  }
+};
+
+// -----------------------------
+// 📋 Get All Bookings (Admin)
+// -----------------------------
+export const getAllBookings = async (req, res) => {
+  try {
+    const bookings = await Booking.find()
+      .populate("user", "name email")
+      .populate({
+        path: "show",
+        populate: {
+          path: "movie",
+          model: "Movie",
+        },
+      })
+      .sort({ createdAt: -1 });
+
+    return res.status(200).json({
+      success: true,
+      bookings,
+    });
+  } catch (error) {
+    console.error("❌ Error fetching all bookings:", error);
+    return res.status(500).json({ success: false, message: "Server error while fetching all bookings" });
+  }
+};
+
+// -----------------------------
+// 💺 Get Occupied Seats for a Show
+// -----------------------------
 export const getOccupiedSeats = async (req, res) => {
-    try {
-        const {showId} = req.params;
-        const showData = await Show.findById(showId);
+  try {
+    const { showId } = req.params;
+    const { theater, date } = req.query;
 
-        const occupiedSeats = Object.keys(showData.occupiedSeats);
+    const bookings = await Booking.find({ show: showId, theater, date });
+    const occupiedSeats = bookings.flatMap(b => b.bookedSeats);
 
-        res.json({ success: true, occupiedSeats } );
-    }
-    catch (error) {
-        console.error("getOccupiedSeats error:", error);
-        res.status(500).json({ success: false, message: error.message });
-    }   
-}
+    res.json({ success: true, occupiedSeats });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error fetching seats" });
+  }
+};
+
+
