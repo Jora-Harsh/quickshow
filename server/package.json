@@ -7,7 +7,7 @@
     "node": "22.x"
   },
   "scripts": {
-    "dev": "node dev.js",
+    "dev": "nodemon server.js",
     "start": "node server.js",
     "server": "nodemon server.js"
   },
