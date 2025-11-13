@@ -49,14 +49,15 @@ const SeatLayout = () => {
     }
   };
 
-  // ✅ Fetch occupied seats by show, theater & date
+  // ✅ Fetch occupied seats by show, theater, date, and showTime
   const getOccupiedSeats = async () => {
     try {
       if (!selectedTime?.showId) return;
       const { data } = await axios.get(
-        `/api/bookings/occupied-seats/${selectedTime.showId}?theater=${theaterId}&date=${date}`,
+        `/api/bookings/occupied-seats/${selectedTime.showId}?theater=${theaterId}&date=${date}&showTime=${selectedTime.time}`,
         { withCredentials: true }
       );
+
       if (data.success) {
         setOccupiedSeats(data.occupiedSeats || []);
       } else {
@@ -102,6 +103,7 @@ const SeatLayout = () => {
         amount,
         theater: theaterId,
         date,
+        showTime: selectedTime.time, // ✅ Use time, not showId
       };
 
       console.log("🎟️ Booking Data:", bookingData);
@@ -111,7 +113,7 @@ const SeatLayout = () => {
       });
 
       if (data.success) {
-          window.location.href = data.url;
+        window.location.href = data.url;
       } else {
         console.error("⚠️ Booking Failed:", data);
         toast.error(data.message || "Failed to create booking");
@@ -165,6 +167,8 @@ const SeatLayout = () => {
     if (match) {
       console.log("✅ Selected Time:", match);
       setSelectedTime(match);
+      setSelectedSeats([]); // clear previous seats
+      setOccupiedSeats([]); // clear old seat data
     } else {
       console.warn("⚠️ No matching show found for", { decodedTime, theaterId });
     }
@@ -183,7 +187,9 @@ const SeatLayout = () => {
               key={item.time}
               onClick={() => setSelectedTime(item)}
               className={`flex items-center gap-2 px-6 py-2 w-max rounded-r-md cursor-pointer transition ${
-                selectedTime?.time === item.time ? "bg-primary text-white" : "hover:bg-primary/20"
+                selectedTime?.time === item.time
+                  ? "bg-primary text-white"
+                  : "hover:bg-primary/20"
               }`}
             >
               <ClockIcon className="w-4 h-4" />

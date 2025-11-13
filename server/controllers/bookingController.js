@@ -5,37 +5,33 @@ import Stripe from "stripe";
 // -----------------------------
 // 📦 Create New Booking
 // -----------------------------
-
 export const createBooking = async (req, res) => {
   try {
-    const { showId, bookedSeats, amount, theater, date } = req.body;
+    const { showId, bookedSeats, amount, theater, date, showTime } = req.body;
     const { origin } = req.headers;
 
-    if (!showId || !bookedSeats || !amount || !theater || !date) {
+    if (!showId || !bookedSeats || !amount || !theater || !date || !showTime) {
       return res.status(400).json({ success: false, message: "Missing booking details" });
     }
 
-    // ✅ Fetch show details
     const showData = await Show.findById(showId).populate("movie");
     if (!showData) {
       return res.status(404).json({ success: false, message: "Show not found" });
     }
 
-    // ✅ Create booking record
     const booking = await Booking.create({
       user: req.user._id,
       show: showId,
       theater,
       date,
+      showTime,
       amount,
       bookedSeats,
       isPaid: false,
     });
 
-    // ✅ Initialize Stripe
     const stripeInstance = new Stripe(process.env.STRIPE_SECRET_KEY);
 
-    // ✅ Create Stripe line items
     const line_items = [
       {
         price_data: {
@@ -43,13 +39,12 @@ export const createBooking = async (req, res) => {
           product_data: {
             name: `${showData.movie.title} - ${theater}`,
           },
-          unit_amount: Math.floor(booking.amount * 100), // convert ₹ to paise
+          unit_amount: Math.floor(booking.amount * 100),
         },
         quantity: 1,
       },
     ];
 
-    // ✅ Create Stripe checkout session
     const session = await stripeInstance.checkout.sessions.create({
       success_url: `${origin}/loading/my-bookings`,
       cancel_url: `${origin}/my-bookings`,
@@ -58,13 +53,12 @@ export const createBooking = async (req, res) => {
       metadata: {
         bookingId: booking._id.toString(),
       },
-      expires_at: Math.floor(Date.now() / 1000) + 30 * 60, // 30 mins
+      expires_at: Math.floor(Date.now() / 1000) + 30 * 60,
     });
 
     booking.paymentLink = session.url;
     await booking.save();
 
-    // ✅ Respond with Stripe URL
     return res.status(200).json({
       success: true,
       message: "Booking created successfully",
@@ -84,16 +78,19 @@ export const getMyBookings = async (req, res) => {
     const bookings = await Booking.find({ user: req.user._id })
       .populate({
         path: "show",
-        populate: {
-          path: "movie",
-          model: "Movie",
-        },
+        populate: { path: "movie", model: "Movie" },
       })
       .sort({ createdAt: -1 });
+
+    // Calculate totalPaid for this user
+    const totalPaid = bookings
+      .filter(b => b.isPaid)
+      .reduce((sum, b) => sum + b.amount, 0);
 
     return res.status(200).json({
       success: true,
       bookings,
+      totalPaid, // 💰 total amount paid by this user
     });
   } catch (error) {
     console.error("❌ Error fetching user bookings:", error);
@@ -110,16 +107,19 @@ export const getAllBookings = async (req, res) => {
       .populate("user", "name email")
       .populate({
         path: "show",
-        populate: {
-          path: "movie",
-          model: "Movie",
-        },
+        populate: { path: "movie", model: "Movie" },
       })
       .sort({ createdAt: -1 });
+
+    // Calculate totalPaid across all bookings
+    const totalPaid = bookings
+      .filter(b => b.isPaid)
+      .reduce((sum, b) => sum + b.amount, 0);
 
     return res.status(200).json({
       success: true,
       bookings,
+      totalPaid, // 💰 total amount paid across all bookings
     });
   } catch (error) {
     console.error("❌ Error fetching all bookings:", error);
@@ -133,9 +133,9 @@ export const getAllBookings = async (req, res) => {
 export const getOccupiedSeats = async (req, res) => {
   try {
     const { showId } = req.params;
-    const { theater, date } = req.query;
+    const { theater, date, showTime } = req.query;
 
-    const bookings = await Booking.find({ show: showId, theater, date });
+    const bookings = await Booking.find({ show: showId, theater, date, showTime });
     const occupiedSeats = bookings.flatMap(b => b.bookedSeats);
 
     res.json({ success: true, occupiedSeats });
@@ -143,5 +143,3 @@ export const getOccupiedSeats = async (req, res) => {
     res.status(500).json({ success: false, message: "Error fetching seats" });
   }
 };
-
-

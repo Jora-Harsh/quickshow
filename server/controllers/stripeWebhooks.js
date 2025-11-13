@@ -1,44 +1,61 @@
 import Stripe from "stripe";
 import Booking from "../models/Bookings.js";
+import { sendEmail, generateConfirmationEmail } from "../utils/emailService.js";
 
-export const stripeWebhooks = async (request, response) => {
-    const stripeInstance = new Stripe(process.env.STRIPE_SECRET_KEY);
-    const sig = request.headers['stripe-signature'];
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
-    let event;
+export const stripeWebhooks = async (req, res) => {
+  const sig = req.headers["stripe-signature"];
+  const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
+  let event;
+
+  try {
+    event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
+  } catch (err) {
+    console.error("Webhook signature verification failed.", err.message);
+    return res.status(400).send(`Webhook Error: ${err.message}`);
+  }
+
+  if (event.type === "checkout.session.completed") {
+    const session = event.data.object;
+
     try {
-        event = stripeInstance.webhooks.constructEvent(request.rawBody, sig, process.env.STRIPE_WEBHOOK_SECRET);
+      const bookingId = session.metadata.bookingId;
+      const booking = await Booking.findById(bookingId)
+        .populate({ path: "user", select: "name email" })
+        .populate({ path: "show", populate: { path: "movie" } });
+
+      if (!booking) return res.status(404).send("Booking not found");
+
+      booking.isPaid = true;
+      await booking.save();
+
+      // Send confirmation email
+      const showTimeStr = booking.show?.showDateTime
+        ? new Date(booking.show.showDateTime).toLocaleString()
+        : booking.showTime || "Unknown Time";
+
+      const html = generateConfirmationEmail({
+        userName: booking.user.name,
+        movieTitle: booking.show?.movie?.title || "Unknown Movie",
+        theater: booking.theater,
+        showTime: showTimeStr,
+        seats: booking.bookedSeats,
+        amount: booking.amount,
+        currency: process.env.VITE_CURRENCY || "₹"
+      });
+
+      await sendEmail({
+        to: booking.user.email,
+        subject: "Booking Confirmed - QuickShow",
+        html,
+      });
+
+      console.log(`✅ Confirmation email sent for booking ${bookingId}`);
     } catch (err) {
-        console.log(`❌ Webhook signature verification failed.`, err.message);
-        return response.status(400).send(`Webhook Error: ${err.message}`);
+      console.error("❌ Error sending confirmation email:", err);
     }
+  }
 
-    try {
-        switch (key) {
-            case "payment_intent.succeeded":
-                {
-                    const paymentIntent = event.data.object;
-                    const sessionList = await stripeInstance.checkout.sessions.list({
-                        payment_intent: paymentIntent.id,
-                    });
-                    const session = sessionList.data[0];
-                    const { bookingId } = session.metadata;
-
-                    await Booking.findByIdAndUpdate(bookingId, {
-                        isPaid: true,
-                        paymentLink: ""
-                    })
-
-                    break;
-                }
-
-
-            default:
-                console.log(`Unhandled event type ${event.type}`);
-        }
-        response.status(200).json({ received: true });
-    } catch (error) {
-        console.error("❌ Error handling webhook event:", error);
-        response.status(500).send("Internal Server Error");
-    }
-}
+  res.json({ received: true });
+};
