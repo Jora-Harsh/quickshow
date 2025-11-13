@@ -5,7 +5,8 @@ import {
   getNowPlayingMovies,
   getShow,
   getRelatedMovies,
-  getShowsByMovieAndDate, // ✅ imported
+  getShowsByMovieAndDate,
+  getLatestMovies, // ✅ imported
 } from "../controllers/showController.js";
 
 const showRouter = express.Router();
@@ -16,5 +17,6 @@ showRouter.get("/all", getAllShows);
 showRouter.get("/by-date", getShowsByMovieAndDate); // ✅ new route
 showRouter.get("/:movieId", getShow);
 showRouter.get("/:movieId/related", getRelatedMovies);
+showRouter.get("/latest", getLatestMovies);
 
 export default showRouter;

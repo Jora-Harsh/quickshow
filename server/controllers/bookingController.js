@@ -1,18 +1,27 @@
 import Booking from "../models/Bookings.js";
 import Show from "../models/Show.js";
+import Stripe from "stripe";
 
 // -----------------------------
 // 📦 Create New Booking
 // -----------------------------
+
 export const createBooking = async (req, res) => {
   try {
     const { showId, bookedSeats, amount, theater, date } = req.body;
+    const { origin } = req.headers;
 
     if (!showId || !bookedSeats || !amount || !theater || !date) {
       return res.status(400).json({ success: false, message: "Missing booking details" });
     }
 
-    // Create booking with theater + date
+    // ✅ Fetch show details
+    const showData = await Show.findById(showId).populate("movie");
+    if (!showData) {
+      return res.status(404).json({ success: false, message: "Show not found" });
+    }
+
+    // ✅ Create booking record
     const booking = await Booking.create({
       user: req.user._id,
       show: showId,
@@ -23,10 +32,43 @@ export const createBooking = async (req, res) => {
       isPaid: false,
     });
 
-    return res.status(201).json({
+    // ✅ Initialize Stripe
+    const stripeInstance = new Stripe(process.env.STRIPE_SECRET_KEY);
+
+    // ✅ Create Stripe line items
+    const line_items = [
+      {
+        price_data: {
+          currency: "inr",
+          product_data: {
+            name: `${showData.movie.title} - ${theater}`,
+          },
+          unit_amount: Math.floor(booking.amount * 100), // convert ₹ to paise
+        },
+        quantity: 1,
+      },
+    ];
+
+    // ✅ Create Stripe checkout session
+    const session = await stripeInstance.checkout.sessions.create({
+      success_url: `${origin}/loading/my-bookings`,
+      cancel_url: `${origin}/my-bookings`,
+      line_items,
+      mode: "payment",
+      metadata: {
+        bookingId: booking._id.toString(),
+      },
+      expires_at: Math.floor(Date.now() / 1000) + 30 * 60, // 30 mins
+    });
+
+    booking.paymentLink = session.url;
+    await booking.save();
+
+    // ✅ Respond with Stripe URL
+    return res.status(200).json({
       success: true,
       message: "Booking created successfully",
-      booking,
+      url: session.url,
     });
   } catch (error) {
     console.error("❌ Error creating booking:", error);

@@ -229,3 +229,21 @@ export const getShowsByMovieAndDate = async (req, res) => {
     });
   }
 };
+
+
+/* =========================================================
+   7️⃣ GET LATEST MOVIES FROM DATABASE
+========================================================= */
+export const getLatestMovies = async (req, res) => {
+  try {
+    // Fetch latest movies from MongoDB, sorted by creation date (newest first)
+    const movies = await Movie.find()
+      .sort({ createdAt: -1 }) // newest first
+      .limit(3); // optional: last 10 movies
+
+    res.status(200).json({ success: true, movies });
+  } catch (error) {
+    console.error("❌ Error fetching latest movies:", error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};

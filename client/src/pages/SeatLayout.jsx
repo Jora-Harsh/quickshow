@@ -111,8 +111,7 @@ const SeatLayout = () => {
       });
 
       if (data.success) {
-        toast.success("Booking created successfully");
-        navigate(`/my-bookings`);
+          window.location.href = data.url;
       } else {
         console.error("⚠️ Booking Failed:", data);
         toast.error(data.message || "Failed to create booking");

@@ -11,6 +11,7 @@ import showRouter from './routes/showRoutes.js';
 import bookingRouter from './routes/bookingRoutes.js';
 import adminRouter from './routes/adminRoutes.js';
 import favoriteRoutes from "./routes/favoriteRoutes.js";
+import { stripeWebhooks } from './controllers/stripeWebhooks.js';
 
 
 const __dirname = path.resolve(); // ESM safe
@@ -18,6 +19,8 @@ const __dirname = path.resolve(); // ESM safe
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+//Stripe webhook routes
+app.use('/api/stripe',express.raw({type:'application/json'}), stripeWebhooks)
 // ── middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));

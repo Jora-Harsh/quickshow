@@ -29,6 +29,7 @@ import AddShows from "./pages/admin/AddShows";
 import ListShows from "./pages/admin/ListShows";
 import ListBookings from "./pages/admin/ListBookings";
 import ProtectedAdminRoute from "./components/admin/ProtectedAdminRoute.jsx";
+import Loading from "./components/Loading.jsx";
 
 const App = () => {
   // ✅ Always call hooks at the top
@@ -62,6 +63,7 @@ const App = () => {
         <Route path="/movies/:id" element={<MovieDetails />} />
         <Route path="/movies/:id/:date" element={<Seatlayout />} />
         <Route path="/my-bookings" element={<MyBookings />} />
+        <Route path="/loading/:nextUrl" element={<Loading />} />
         <Route path="/favorite" element={<Favorite />} />
         <Route path="/movies/:id/theaters" element={<TheaterList />} />
         <Route path="/theaters" element={<Theaters />} />
