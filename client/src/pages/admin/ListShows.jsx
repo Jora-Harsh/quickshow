@@ -6,13 +6,13 @@ import { useAuth } from "../../context/AuthContext";
 import toast from "react-hot-toast";
 
 const ListShows = () => {
-  const currency = import.meta.env.VITE_CURRENCY || "$";
+  const currency = import.meta.env.VITE_CURRENCY || "₹";
   const [shows, setShows] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const { axios, user, image_base_url } = useAuth(); // from AuthContext
+  const { axios, image_base_url } = useAuth();
 
-  // Format date & time nicely (12-hour format)
+  // Format date & time
   const formatDateTime = (iso) => {
     if (!iso) return "";
     return new Date(iso).toLocaleString("en-IN", {
@@ -25,20 +25,16 @@ const ListShows = () => {
     });
   };
 
-  // Fetch all shows from backend
   const getAllShows = async () => {
     try {
-      const { data } = await axios.get("/api/admin/all-shows", {
-        withCredentials: true,
-      });
-
+      const { data } = await axios.get("/api/admin/all-shows", { withCredentials: true });
       if (data.success) {
         setShows(data.shows);
       } else {
         toast.error("Failed to load shows");
       }
-    } catch (error) {
-      console.error("Error fetching shows:", error);
+    } catch (err) {
+      console.error("Error fetching shows:", err);
       toast.error("Something went wrong while fetching shows");
     } finally {
       setLoading(false);
@@ -71,38 +67,31 @@ const ListShows = () => {
               </thead>
 
               <tbody>
-                {shows.map((show, index) => {
-                  const totalBookings = Object.keys(show.occupiedSeats || {}).length;
-                  const totalEarnings = totalBookings * (show.showPrice || 0);
+                {shows.map((show, index) => (
+                  <tr
+                    key={index}
+                    className="border-b border-primary/20 bg-primary/10 even:bg-primary/15 hover:bg-primary/25 transition duration-200"
+                  >
+                    <td className="p-3 pl-5 flex items-center gap-3 font-medium text-white/90">
+                      {show.movie?.poster_path && (
+                        <img
+                          src={image_base_url + show.movie.poster_path}
+                          alt={show.movie.title}
+                          className="w-10 h-14 object-cover rounded-md border border-primary/20"
+                        />
+                      )}
+                      {show.movie?.title || "Untitled"}
+                    </td>
 
-                  return (
-                    <tr
-                      key={index}
-                      className="border-b border-primary/20 bg-primary/10 even:bg-primary/15 hover:bg-primary/25 transition duration-200"
-                    >
-                      <td className="p-3 pl-5 flex items-center gap-3 font-medium text-white/90">
-                        {show.movie?.poster_path && (
-                          <img
-                            src={image_base_url + show.movie.poster_path}
-                            alt={show.movie.title}
-                            className="w-10 h-14 object-cover rounded-md border border-primary/20"
-                          />
-                        )}
-                        {show.movie?.title || "Untitled"}
-                      </td>
+                    <td className="p-3 text-gray-200">{formatDateTime(show.showDateTime)}</td>
 
-                      <td className="p-3 text-gray-200">
-                        {formatDateTime(show.showDateTime)}
-                      </td>
+                    <td className="p-3 text-gray-200">{show.totalBookings || 0}</td>
 
-                      <td className="p-3 text-gray-200">{totalBookings}</td>
-
-                      <td className="p-3 text-gray-100 font-semibold">
-                        {currency} {totalEarnings}
-                      </td>
-                    </tr>
-                  );
-                })}
+                    <td className="p-3 text-gray-100 font-semibold">
+                      {currency} {show.totalEarnings || 0}
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>

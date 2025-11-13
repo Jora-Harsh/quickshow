@@ -39,19 +39,34 @@ export const getDashboardData = async (req, res) => {
   }
 };
 
-// ✅ Get all shows (no date filter)
+// GET /api/admin/all-shows
 export const getAllShows = async (req, res) => {
   try {
-    const shows = await Show.find()
-      .populate("movie")
-      .sort({ showDateTime: 1 });
+    // Fetch all shows and populate movie info
+    const shows = await Show.find().populate("movie").sort({ showDateTime: 1 });
 
-    res.json({ success: true, shows });
-  } catch (error) {
-    console.error("getAllShows error:", error);
-    res.status(500).json({ success: false, message: error.message });
+    // Add totalBookings and totalEarnings for each show
+    const showsWithEarnings = await Promise.all(
+      shows.map(async (show) => {
+        const paidBookings = await Booking.find({ show: show._id, isPaid: true });
+        const totalBookings = paidBookings.length;
+        const totalEarnings = paidBookings.reduce((acc, b) => acc + b.amount, 0);
+
+        return {
+          ...show.toObject(),
+          totalBookings,
+          totalEarnings,
+        };
+      })
+    );
+
+    res.status(200).json({ success: true, shows: showsWithEarnings });
+  } catch (err) {
+    console.error("❌ Error fetching shows with earnings:", err);
+    res.status(500).json({ success: false, message: "Server error" });
   }
 };
+
 
 // ✅ Get all bookings
 export const getAllBookings = async (req, res) => {
@@ -144,5 +159,33 @@ export const addShow = async (req, res) => {
   } catch (error) {
     console.error("❌ Error adding show:", error);
     res.status(500).json({ success: false, message: "Failed to add show." });
+  }
+};
+
+
+export const getAllShowsWithEarnings = async (req, res) => {
+  try {
+    const shows = await Show.find().populate("movie").sort({ showDateTime: -1 });
+
+    const showsWithEarnings = await Promise.all(
+      shows.map(async (show) => {
+        // Count only paid bookings
+        const paidBookings = await Booking.find({ show: show._id, isPaid: true });
+
+        const totalBookings = paidBookings.length;
+        const totalEarnings = paidBookings.reduce((acc, b) => acc + b.amount, 0);
+
+        return {
+          ...show.toObject(),
+          totalBookings,
+          totalEarnings,
+        };
+      })
+    );
+
+    res.status(200).json({ success: true, shows: showsWithEarnings });
+  } catch (err) {
+    console.error("Error fetching shows with earnings:", err);
+    res.status(500).json({ success: false, message: "Server error" });
   }
 };

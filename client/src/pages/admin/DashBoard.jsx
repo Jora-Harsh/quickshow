@@ -7,7 +7,7 @@ import { useAuth } from "../../context/AuthContext";
 import toast from "react-hot-toast";
 
 const DashBoard = () => {
-  const currency = "$";
+  const currency = "₹";
   const [data, setData] = useState(null);
   const { axios, image_base_url } = useAuth();
 
