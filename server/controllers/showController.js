@@ -234,16 +234,36 @@ export const getShowsByMovieAndDate = async (req, res) => {
 /* =========================================================
    7️⃣ GET LATEST MOVIES FROM DATABASE
 ========================================================= */
+
 export const getLatestMovies = async (req, res) => {
   try {
-    // Fetch latest movies from MongoDB, sorted by creation date (newest first)
-    const movies = await Movie.find()
-      .sort({ createdAt: -1 }) // newest first
-      .limit(3); // optional: last 10 movies
+    const shows = await Show.find()
+      .sort({ showDateTime: -1 })
+      .limit(10);
 
-    res.status(200).json({ success: true, movies });
-  } catch (error) {
-    console.error("❌ Error fetching latest movies:", error);
-    res.status(500).json({ success: false, message: error.message });
+    const movies = await Promise.all(shows.map(async (show) => {
+      let movieDetails = { title: "Unknown", poster_path: "" };
+      try {
+        const tmdbRes = await axios.get(`https://api.themoviedb.org/3/movie/${show.movie}?api_key=${process.env.TMDB_API_KEY}`);
+        movieDetails = tmdbRes.data;
+      } catch (err) {
+        console.error(`TMDB fetch failed for movie ID ${show.movie}:`, err.message);
+      }
+
+      return {
+        showId: show._id,
+        movieId: show.movie,
+        title: movieDetails.title,
+        poster_path: movieDetails.poster_path,
+        theater: show.theater,
+        showDateTime: show.showDateTime,
+        showPrice: show.showPrice,
+      };
+    }));
+
+    res.json({ success: true, movies });
+  } catch (err) {
+    console.error("Error fetching latest shows:", err);
+    res.status(500).json({ success: false, message: "Server error" });
   }
 };

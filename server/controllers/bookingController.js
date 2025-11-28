@@ -2,6 +2,8 @@ import Booking from "../models/Bookings.js";
 import Show from "../models/Show.js";
 import Stripe from "stripe";
 
+const stripeInstance = new Stripe(process.env.STRIPE_SECRET_KEY);
+
 // -----------------------------
 // 📦 Create New Booking
 // -----------------------------
@@ -15,9 +17,7 @@ export const createBooking = async (req, res) => {
     }
 
     const showData = await Show.findById(showId).populate("movie");
-    if (!showData) {
-      return res.status(404).json({ success: false, message: "Show not found" });
-    }
+    if (!showData) return res.status(404).json({ success: false, message: "Show not found" });
 
     const booking = await Booking.create({
       user: req.user._id,
@@ -30,15 +30,11 @@ export const createBooking = async (req, res) => {
       isPaid: false,
     });
 
-    const stripeInstance = new Stripe(process.env.STRIPE_SECRET_KEY);
-
     const line_items = [
       {
         price_data: {
           currency: "inr",
-          product_data: {
-            name: `${showData.movie.title} - ${theater}`,
-          },
+          product_data: { name: `${showData.movie.title} - ${theater}` },
           unit_amount: Math.floor(booking.amount * 100),
         },
         quantity: 1,
@@ -46,13 +42,11 @@ export const createBooking = async (req, res) => {
     ];
 
     const session = await stripeInstance.checkout.sessions.create({
-      success_url: `${origin}/loading/my-bookings`,
+      success_url: `${origin}/my-bookings?paid=true`,
       cancel_url: `${origin}/my-bookings`,
       line_items,
       mode: "payment",
-      metadata: {
-        bookingId: booking._id.toString(),
-      },
+      metadata: { bookingId: booking._id.toString() },
       expires_at: Math.floor(Date.now() / 1000) + 30 * 60,
     });
 
@@ -82,7 +76,6 @@ export const getMyBookings = async (req, res) => {
       })
       .sort({ createdAt: -1 });
 
-    // Calculate totalPaid for this user
     const totalPaid = bookings
       .filter(b => b.isPaid)
       .reduce((sum, b) => sum + b.amount, 0);
@@ -90,7 +83,7 @@ export const getMyBookings = async (req, res) => {
     return res.status(200).json({
       success: true,
       bookings,
-      totalPaid, // 💰 total amount paid by this user
+      totalPaid,
     });
   } catch (error) {
     console.error("❌ Error fetching user bookings:", error);
@@ -111,7 +104,6 @@ export const getAllBookings = async (req, res) => {
       })
       .sort({ createdAt: -1 });
 
-    // Calculate totalPaid across all bookings
     const totalPaid = bookings
       .filter(b => b.isPaid)
       .reduce((sum, b) => sum + b.amount, 0);
@@ -119,7 +111,7 @@ export const getAllBookings = async (req, res) => {
     return res.status(200).json({
       success: true,
       bookings,
-      totalPaid, // 💰 total amount paid across all bookings
+      totalPaid,
     });
   } catch (error) {
     console.error("❌ Error fetching all bookings:", error);

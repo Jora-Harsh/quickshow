@@ -12,25 +12,29 @@ export const stripeWebhooks = async (req, res) => {
   try {
     event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
   } catch (err) {
-    console.error("Webhook signature verification failed.", err.message);
+    console.error("❌ Webhook signature verification failed:", err.message);
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
 
+  console.log("💡 Webhook received:", event.type);
+
   if (event.type === "checkout.session.completed") {
     const session = event.data.object;
+    const bookingId = session.metadata.bookingId;
 
     try {
-      const bookingId = session.metadata.bookingId;
       const booking = await Booking.findById(bookingId)
         .populate({ path: "user", select: "name email" })
         .populate({ path: "show", populate: { path: "movie" } });
 
       if (!booking) return res.status(404).send("Booking not found");
 
+      // ✅ Update booking as paid
       booking.isPaid = true;
       await booking.save();
+      console.log(`✅ Booking marked as paid: ${booking._id}`);
 
-      // Send confirmation email
+      // ✅ Send confirmation email
       const showTimeStr = booking.show?.showDateTime
         ? new Date(booking.show.showDateTime).toLocaleString()
         : booking.showTime || "Unknown Time";
@@ -42,7 +46,7 @@ export const stripeWebhooks = async (req, res) => {
         showTime: showTimeStr,
         seats: booking.bookedSeats,
         amount: booking.amount,
-        currency: process.env.VITE_CURRENCY || "₹"
+        currency: process.env.VITE_CURRENCY || "₹",
       });
 
       await sendEmail({
@@ -51,9 +55,9 @@ export const stripeWebhooks = async (req, res) => {
         html,
       });
 
-      console.log(`✅ Confirmation email sent for booking ${bookingId}`);
+      console.log(`✅ Confirmation email sent to ${booking.user.email}`);
     } catch (err) {
-      console.error("❌ Error sending confirmation email:", err);
+      console.error("❌ Error processing webhook:", err);
     }
   }
 
