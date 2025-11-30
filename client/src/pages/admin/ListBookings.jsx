@@ -5,13 +5,12 @@ import { useAuth } from "../../context/AuthContext";
 import toast from "react-hot-toast";
 
 const ListBookings = () => {
-  const currency = import.meta.env.VITE_CURRENCY || "$";
+  const currency = import.meta.env.VITE_CURRENCY || "₹";
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const { axios } = useAuth();
 
-  // Function to format date/time to readable form (12-hour format)
   const formatDateTime = (iso) => {
     if (!iso) return "";
     return new Date(iso).toLocaleString("en-IN", {
@@ -24,7 +23,6 @@ const ListBookings = () => {
     });
   };
 
-  // Fetch all bookings from backend
   const getAllBookings = async () => {
     try {
       const { data } = await axios.get("/api/admin/all-bookings", {
@@ -57,14 +55,16 @@ const ListBookings = () => {
       <div className="mt-6 w-full">
         <div className="overflow-x-auto -mx-2 sm:mx-0">
           <div className="inline-block min-w-full align-middle px-2 sm:px-0">
-            <table className="min-w-[720px] sm:min-w-full w-full border-collapse rounded-md overflow-hidden text-nowrap text-white">
+            <table className="min-w-[950px] sm:min-w-full w-full border-collapse rounded-md text-white">
               <thead>
                 <tr className="bg-primary/30 text-left uppercase text-xs tracking-wide">
-                  <th className="p-2 sm:p-3 font-medium pl-5">User Name</th>
-                  <th className="p-2 sm:p-3 font-medium">Movie Name</th>
-                  <th className="p-2 sm:p-3 font-medium">Show Time</th>
-                  <th className="p-2 sm:p-3 font-medium">Seats</th>
-                  <th className="p-2 sm:p-3 font-medium">Amount</th>
+                  <th className="p-3 pl-5">User Name</th>
+                  <th className="p-3">Movie Name</th>
+                  <th className="p-3">Theater</th>
+                  <th className="p-3">Show Time</th>
+                  <th className="p-3">Seats</th>
+                  <th className="p-3 text-right">Amount</th>
+                  <th className="p-3 text-center">Status</th>
                 </tr>
               </thead>
 
@@ -75,29 +75,43 @@ const ListBookings = () => {
                       key={index}
                       className="border-b border-primary/20 bg-primary/10 even:bg-primary/20 hover:bg-primary/25 transition"
                     >
-                      <td className="p-2 sm:p-3 pl-5 font-medium text-white/90">
+                      <td className="p-3 pl-5 font-medium text-white/90">
                         {item.user?.name || "Unknown User"}
                       </td>
-                      <td className="p-2 sm:p-3 text-gray-200">
-                        {item.show?.movie?.title || "N/A"}
-                      </td>
-                      <td className="p-2 sm:p-3 text-gray-300">
+
+                      <td className="p-3">{item.show?.movie?.title || "N/A"}</td>
+
+                      <td className="p-3">{item.theater || "N/A"}</td>
+
+                      <td className="p-3">
                         {formatDateTime(item.show?.showDateTime)}
                       </td>
-                      <td className="p-2 sm:p-3 text-gray-300">
-                        {Object.keys(item.bookedSeats || {})
-                          .map((key) => item.bookedSeats[key])
-                          .join(", ")}
+
+                      <td className="p-3">
+                        {item.bookedSeats?.join(" · ") || "N/A"}
                       </td>
-                      <td className="p-2 sm:p-3 font-semibold text-white">
+
+                      <td className="p-3 font-semibold text-right">
                         {currency} {item.amount || 0}
+                      </td>
+
+                      <td className="p-3 text-center">
+                        {item.isPaid ? (
+                          <span className="px-2 py-1 text-xs bg-green-600/70 rounded-md">
+                            Paid
+                          </span>
+                        ) : (
+                          <span className="px-2 py-1 text-xs bg-yellow-600/70 rounded-md">
+                            Pending
+                          </span>
+                        )}
                       </td>
                     </tr>
                   ))
                 ) : (
                   <tr>
                     <td
-                      colSpan="5"
+                      colSpan="7"
                       className="text-center py-4 text-gray-400 italic"
                     >
                       No bookings found
@@ -109,9 +123,8 @@ const ListBookings = () => {
           </div>
         </div>
 
-        {/* Optional helper text on very small screens */}
         <p className="mt-2 text-xs text-gray-400 sm:hidden">
-          💡 Tip: Swipe left/right to see more.
+          💡 Swipe left/right to see more.
         </p>
       </div>
     </>

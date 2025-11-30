@@ -72,40 +72,43 @@ const DashBoard = () => {
       </div>
 
       {/* ---------------- Active Shows ---------------- */}
-      <p className="mt-10 text-lg font-medium">Active Shows</p>
-      <div className="relative flex flex-wrap gap-6 mt-4 max-w-5xl">
-        <BlurCircle top="100px" left="-10px" />
-        {data.activeShows.map((show) => (
-          <div
-            key={show._id}
-            className="w-48 rounded-lg overflow-hidden bg-primary/10 border border-primary/20 hover:-translate-y-1 transition duration-300"
-          >
-            <div className="aspect-[2/3] w-full">
-              <img
-                src={ image_base_url+show.movie.poster_path}
-                alt={show.movie.title}
-                className="h-full w-full object-cover"
-              />
-            </div>
+     <p className="mt-10 text-lg font-medium">Active Shows</p>
 
-            <div className="p-2">
-              <p className="font-medium truncate text-sm">{show.movie.title}</p>
-              <div className="flex items-center justify-between mt-1">
-                <p className="text-sm font-medium">
-                  {currency} {show.showPrice}
-                </p>
-                <p className="flex items-center gap-1 text-xs text-gray-400">
-                  <Star className="w-3 h-3 text-primary fill-primary" />
-                  {show.movie.vote_average.toFixed(1)}
-                </p>
-              </div>
-              <p className="text-xs text-gray-500 mt-1">
-                {formatDateTime(show.showDateTime)}
-              </p>
-            </div>
-          </div>
-        ))}
+<div className="relative flex flex-wrap gap-6 mt-4 max-w-5xl">
+  <BlurCircle top="100px" left="-10px" />
+
+  {data.activeShows.map((item, index) => (
+    <div
+      key={index}
+      className="w-48 rounded-lg overflow-hidden bg-primary/10 border border-primary/20 hover:-translate-y-1 transition duration-300"
+    >
+
+      <div className="aspect-[2/3] w-full">
+        <img
+          src={image_base_url + item.movie.poster_path}
+          alt={item.movie.title}
+          className="h-full w-full object-cover"
+        />
       </div>
+
+      <div className="p-2">
+        <p className="font-medium truncate text-sm">{item.movie.title}</p>
+
+      
+
+        {/* Rating */}
+        <div className="flex items-center justify-between mt-1">
+          <p className="flex items-center gap-1 text-xs text-gray-400">
+            <Star className="w-3 h-3 text-primary fill-primary" />
+            {item.movie.vote_average.toFixed(1)}
+          </p>
+        </div>
+
+      </div>
+    </div>
+  ))}
+</div>
+
     </>
   );
 };
