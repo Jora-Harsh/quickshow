@@ -18,6 +18,7 @@ import { stripeWebhooks } from './controllers/stripeWebhooks.js';
 import startBookingCleanupJob from './utils/bookingCleaner.js';
 import paymentRoutes from "./routes/paymentRoutes.js";
 import { verifyPayment } from './controllers/bookingController.js';
+import reportRoutes from './routes/reportRoutes.js';
 
 
 const __dirname = path.resolve();
@@ -74,6 +75,7 @@ app.use("/api/admin", adminRouter);
 app.use("/api/favorites", favoriteRoutes);
 app.use("/api/movies", movieRouter);
 app.use("/api/payment", paymentRoutes);
+app.use("/api/reports",reportRoutes)
 
 
 
