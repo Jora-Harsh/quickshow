@@ -113,7 +113,7 @@ const SeatLayout = () => {
       });
 
       if (data.success) {
-        window.location.href = data.url;
+          window.open(data.url, "_blank", "noopener,noreferrer"); // open Stripe in new tab
       } else {
         console.error("⚠️ Booking Failed:", data);
         toast.error(data.message || "Failed to create booking");

@@ -16,6 +16,9 @@ import movieRouter from './routes/movieRoutes.js';
 
 import { stripeWebhooks } from './controllers/stripeWebhooks.js';
 import startBookingCleanupJob from './utils/bookingCleaner.js';
+import paymentRoutes from "./routes/paymentRoutes.js";
+import { verifyPayment } from './controllers/bookingController.js';
+
 
 const __dirname = path.resolve();
 const app = express();
@@ -27,7 +30,7 @@ const PORT = process.env.PORT || 3000;
 // Must use express.raw() BEFORE json middleware
 app.post(
   "/api/payment/webhook",
-  express.raw({ type: "application/json" }),
+  express.raw({ type: "*/*" }),
   stripeWebhooks
 );
 
@@ -70,6 +73,12 @@ app.use("/api/bookings", bookingRouter);
 app.use("/api/admin", adminRouter);
 app.use("/api/favorites", favoriteRoutes);
 app.use("/api/movies", movieRouter);
+app.use("/api/payment", paymentRoutes);
+
+
+
+
+
 
 // ------------------------------------------
 // 7️⃣ START SERVER

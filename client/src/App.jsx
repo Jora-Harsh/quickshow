@@ -21,6 +21,7 @@ import Register from "./pages/Register.jsx";
 import ForgotPassword from "./pages/ForgetPassword.jsx";
 import VerifyAccount from "./pages/VerifyAccount.jsx";
 import ComingSoonPage from "./pages/ComingSoonPage.jsx";
+import PaymentSuccess from "./pages/paymentSuccess.jsx";
 
 // Admin Pages
 import Layout from "./pages/admin/Layout";
@@ -73,6 +74,8 @@ const App = () => {
         <Route path="/forgot" element={<ForgotPassword />} />
         <Route path="/verify" element={<VerifyAccount />} />
         <Route path="/coming-soon/:id" element={<ComingSoonPage />} />
+        <Route path="/payment-success" element={<PaymentSuccess />} />
+
 
         {/* Protected Admin Routes */}
         <Route element={<ProtectedAdminRoute />}>

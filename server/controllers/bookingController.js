@@ -1,11 +1,12 @@
 import Booking from "../models/Bookings.js";
 import Show from "../models/Show.js";
 import Stripe from "stripe";
+import { sendEmail, generateConfirmationEmail } from "../utils/emailService.js";
 
 const stripeInstance = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 // -----------------------------
-// 📦 Create New Booking
+// 📦 Create New Booking (NO WEBHOOK VERSION)
 // -----------------------------
 export const createBooking = async (req, res) => {
   try {
@@ -30,6 +31,7 @@ export const createBooking = async (req, res) => {
       isPaid: false,
     });
 
+    // Stripe line items
     const line_items = [
       {
         price_data: {
@@ -41,8 +43,9 @@ export const createBooking = async (req, res) => {
       },
     ];
 
+    // 🆕 success_url contains session_id (important)
     const session = await stripeInstance.checkout.sessions.create({
-      success_url: `${origin}/my-bookings?paid=true`,
+      success_url: `${origin}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/my-bookings`,
       line_items,
       mode: "payment",
@@ -63,6 +66,77 @@ export const createBooking = async (req, res) => {
     return res.status(500).json({ success: false, message: "Server error while creating booking" });
   }
 };
+
+
+export const verifyPayment = async (req, res) => {
+  try {
+    const { session_id } = req.query;
+
+    if (!session_id) {
+      return res.status(400).json({ success: false, message: "No session_id provided" });
+    }
+
+    // Fetch session direct from Stripe
+    const session = await stripeInstance.checkout.sessions.retrieve(session_id);
+
+    if (session.payment_status !== "paid") {
+      return res.json({ success: false, message: "Payment incomplete" });
+    }
+
+    const bookingId = session.metadata.bookingId;
+
+    const booking = await Booking.findById(bookingId)
+      .populate("user")
+      .populate({ path: "show", populate: { path: "movie" } });
+
+    if (!booking) {
+      return res.status(404).json({ success: false, message: "Booking not found" });
+    }
+
+    // 🔁 CHECK: if booking already paid, don't send email twice
+    const firstTimePayment = !booking.isPaid;
+
+    // Mark as paid
+    booking.isPaid = true;
+    await booking.save();
+
+    // ✉️ Send confirmation email only on FIRST PAYMENT
+    if (firstTimePayment) {
+      try {
+        const showTimeStr = booking.show?.showDateTime
+          ? new Date(booking.show.showDateTime).toLocaleString()
+          : booking.showTime || "Unknown Time";
+
+        const html = generateConfirmationEmail({
+          userName: booking.user.name,
+          movieTitle: booking.show?.movie?.title || "Unknown Movie",
+          theater: booking.theater,
+          showTime: showTimeStr,
+          seats: booking.bookedSeats,
+          amount: booking.amount,
+          currency: process.env.VITE_CURRENCY || "₹",
+        });
+
+        await sendEmail({
+          to: booking.user.email,
+          subject: "Booking Confirmed - QuickShow",
+          html,
+        });
+
+        console.log(`✅ Confirmation email sent to ${booking.user.email}`);
+      } catch (emailErr) {
+        console.error("❌ Email sending failed:", emailErr);
+      }
+    }
+
+    return res.json({ success: true, booking });
+
+  } catch (error) {
+    console.error("❌ Verify payment error:", error);
+    res.status(500).json({ success: false, message: "Server error verifying payment" });
+  }
+};
+
 
 // -----------------------------
 // 🎟️ Get User Bookings
