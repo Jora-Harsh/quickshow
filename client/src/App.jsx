@@ -21,7 +21,7 @@ import Register from "./pages/Register.jsx";
 import ForgotPassword from "./pages/ForgetPassword.jsx";
 import VerifyAccount from "./pages/VerifyAccount.jsx";
 import ComingSoonPage from "./pages/ComingSoonPage.jsx";
-import PaymentSuccess from "./pages/paymentSuccess.jsx";
+import PaymentSuccess from "./pages/PaymentSuccess.jsx";
 
 // Admin Pages
 import Layout from "./pages/admin/Layout";
