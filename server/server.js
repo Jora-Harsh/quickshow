@@ -23,7 +23,7 @@ import reportRoutes from './routes/reportRoutes.js';
 
 const __dirname = path.resolve();
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 10000; // 3000
 
 // ------------------------------------------
 // 1️⃣ STRIPE WEBHOOK ROUTE (Must Be FIRST!)
