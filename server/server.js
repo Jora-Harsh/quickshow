@@ -23,6 +23,7 @@ import reportRoutes from './routes/reportRoutes.js';
 
 const __dirname = path.resolve();
 const app = express();
+app.set("trust proxy", 1); //---------- aa hali hancha pn me karela che 
 const PORT = process.env.PORT || 10000; // 3000
 
 // ------------------------------------------
@@ -63,7 +64,7 @@ app.use(cors({
     credentials: true
 }));
 
-app.set("trust proxy", 1);
+
 
 
 
