@@ -23,8 +23,8 @@ import reportRoutes from './routes/reportRoutes.js';
 
 const __dirname = path.resolve();
 const app = express();
-app.set("trust proxy", 1); //---------- aa hali hancha pn me karela che 
-const PORT = process.env.PORT || 10000; // 3000
+// app.set("trust proxy", 1); //---------- aa hali hancha pn me karela che 
+const PORT = process.env.PORT || 3000; // 3000
 
 // ------------------------------------------
 // 1️⃣ STRIPE WEBHOOK ROUTE (Must Be FIRST!)
@@ -42,27 +42,27 @@ app.post(
 app.use(express.json()); // OK after webhook
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-// app.use(
-//   cors({
-//     origin: "http://localhost:5173",
-//     credentials: true,
-//   })
-// ); me hadi kari che cors ni jagya pr
-const allowedOrigins = [
-  "http://localhost:5173",
-  "https://quickshow-client-rosy.vercel.app"
-];
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    credentials: true,
+  })
+); // me hadi kari che cors ni jagya pr
+// const allowedOrigins = [
+//   "http://localhost:5173",
+//   "https://quickshow-client-rosy.vercel.app"
+// ];
 
-app.use(cors({
-    origin: function (origin, callback) {
-        if (!origin || allowedOrigins.includes(origin)) {
-            callback(null, true);
-        } else {
-            callback(new Error("Not allowed by CORS"));
-        }
-    },
-    credentials: true
-}));
+// app.use(cors({
+//     origin: function (origin, callback) {
+//         if (!origin || allowedOrigins.includes(origin)) {
+//             callback(null, true);
+//         } else {
+//             callback(new Error("Not allowed by CORS"));
+//         }
+//     },
+//     credentials: true
+// }));
 
 
 

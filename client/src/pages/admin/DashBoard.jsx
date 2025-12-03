@@ -12,7 +12,7 @@ import {
   FileSpreadsheet,
   ChevronDown,
 } from "lucide-react";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../context/AuthContext.jsx";
 import toast from "react-hot-toast";
 
 const DashBoard = () => {
