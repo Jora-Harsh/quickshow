@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Loading from "../../components/Loading";
 import Title from "../../components/admin/Title";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../context/AuthContext.jsx";
 import toast from "react-hot-toast";
 
 const ListBookings = () => {
@@ -11,8 +11,11 @@ const ListBookings = () => {
 
   const { axios } = useAuth();
 
+  // ------------------------------
+  // Format ShowTime
+  // ------------------------------
   const formatDateTime = (iso) => {
-    if (!iso) return "";
+    if (!iso) return "N/A";
     return new Date(iso).toLocaleString("en-IN", {
       year: "numeric",
       month: "short",
@@ -23,20 +26,21 @@ const ListBookings = () => {
     });
   };
 
+  // ------------------------------
+  // Fetch All Bookings (Admin)
+  // ------------------------------
   const getAllBookings = async () => {
     try {
-      const { data } = await axios.get("/api/admin/all-bookings", {
-        withCredentials: true,
-      });
+      const { data } = await axios.get("/api/admin/all-bookings");
 
       if (data.success) {
         setBookings(data.bookings);
       } else {
         toast.error("Failed to fetch bookings");
       }
-    } catch (error) {
-      console.error("Error fetching bookings:", error);
-      toast.error("Something went wrong while fetching bookings");
+    } catch (err) {
+      console.error("Fetch error:", err);
+      toast.error("Unable to fetch bookings");
     } finally {
       setLoading(false);
     }
@@ -48,84 +52,135 @@ const ListBookings = () => {
 
   if (loading) return <Loading />;
 
+  // ------------------------------
+  // Grouping by USER
+  // ------------------------------
+  const groupedByUser = bookings.reduce((acc, b) => {
+    const userId = b.user?._id;
+    if (!acc[userId]) {
+      acc[userId] = {
+        user: b.user,
+        entries: [],
+      };
+    }
+    acc[userId].entries.push(b);
+    return acc;
+  }, {});
+
+  // ------------------------------
+  // Group bookings inside a user:
+  // BY Movie + Theater + ShowTime
+  // ------------------------------
+  const groupUserBookings = (entries) => {
+    const groups = {};
+
+    entries.forEach((b) => {
+      const movieId = b.show?.movie?._id || "unknown";
+      const key = `${movieId}-${b.theater}-${b.showTime}`;
+
+      if (!groups[key]) {
+        groups[key] = {
+          movie: b.show?.movie,
+          theater: b.theater,
+          showTime: b.show?.showDateTime || b.showTime,
+          seats: [...b.bookedSeats],
+          totalAmount: b.amount,
+          isPaid: b.isPaid,
+          bookings: [b],
+        };
+      } else {
+        groups[key].seats.push(...b.bookedSeats);
+        groups[key].totalAmount += b.amount;
+        groups[key].bookings.push(b);
+        if (b.isPaid) groups[key].isPaid = true;
+      }
+    });
+
+    return Object.values(groups);
+  };
+
+  // ------------------------------
+  // UI
+  // ------------------------------
   return (
     <>
       <Title text1="List" text2="Bookings" />
 
       <div className="mt-6 w-full">
-        <div className="overflow-x-auto -mx-2 sm:mx-0">
-          <div className="inline-block min-w-full align-middle px-2 sm:px-0">
-            <table className="min-w-[950px] sm:min-w-full w-full border-collapse rounded-md text-white">
-              <thead>
-                <tr className="bg-primary/30 text-left uppercase text-xs tracking-wide">
-                  <th className="p-3 pl-5">User Name</th>
-                  <th className="p-3">Movie Name</th>
-                  <th className="p-3">Theater</th>
-                  <th className="p-3">Show Time</th>
-                  <th className="p-3">Seats</th>
-                  <th className="p-3 text-right">Amount</th>
-                  <th className="p-3 text-center">Status</th>
-                </tr>
-              </thead>
+        {Object.values(groupedByUser).map((userBlock) => {
+          const groupedMovies = groupUserBookings(userBlock.entries);
 
-              <tbody className="text-xs sm:text-sm font-light">
-                {bookings.length > 0 ? (
-                  bookings.map((item, index) => (
-                    <tr
-                      key={index}
-                      className="border-b border-primary/20 bg-primary/10 even:bg-primary/20 hover:bg-primary/25 transition"
-                    >
-                      <td className="p-3 pl-5 font-medium text-white/90">
-                        {item.user?.name || "Unknown User"}
-                      </td>
+          return (
+            <div
+              key={userBlock.user._id}
+              className="bg-primary/10 p-3 mb-5 rounded-md border border-primary/20"
+            >
+              {/* USER HEADER */}
+              <h2 className="text-base font-semibold text-primary mb-3">
+                👤 {userBlock.user.name}
+              </h2>
 
-                      <td className="p-3">{item.show?.movie?.title || "N/A"}</td>
+              {groupedMovies.map((group, index) => (
+                <div
+                  key={index}
+                  className="p-3 mb-3 bg-black/30 rounded-md border border-gray-700"
+                >
+                  {/* SUMMARY ROW */}
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h3 className="text-sm font-bold">
+                        {group.movie?.title || "Unknown Movie"}
+                      </h3>
+                      <p className="text-xs text-gray-400">{group.theater}</p>
+                      <p className="text-xs text-gray-300 mt-1">
+                        {formatDateTime(group.showTime)}
+                      </p>
+                      <p className="text-xs text-gray-300">
+                        Seats: {group.seats.join(" · ")}
+                      </p>
+                    </div>
 
-                      <td className="p-3">{item.theater || "N/A"}</td>
+                    <div className="text-right">
+                      <p className="font-semibold text-base">
+                        {currency} {group.totalAmount}
+                      </p>
 
-                      <td className="p-3">
-                        {formatDateTime(item.show?.showDateTime)}
-                      </td>
+                      <span
+                        className={`px-2 py-0.5 text-[10px] rounded ${
+                          group.isPaid ? "bg-green-600/70" : "bg-yellow-600/70"
+                        }`}
+                      >
+                        {group.isPaid ? "Paid" : "Pending"}
+                      </span>
+                    </div>
+                  </div>
 
-                      <td className="p-3">
-                        {item.bookedSeats?.join(" · ") || "N/A"}
-                      </td>
+                  {/* COLLAPSIBLE DETAILS */}
+                  <details className="mt-2">
+                    <summary className="cursor-pointer text-primary text-xs">
+                      View bookings
+                    </summary>
 
-                      <td className="p-3 font-semibold text-right">
-                        {currency} {item.amount || 0}
-                      </td>
-
-                      <td className="p-3 text-center">
-                        {item.isPaid ? (
-                          <span className="px-2 py-1 text-xs bg-green-600/70 rounded-md">
-                            Paid
-                          </span>
-                        ) : (
-                          <span className="px-2 py-1 text-xs bg-yellow-600/70 rounded-md">
-                            Pending
-                          </span>
-                        )}
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td
-                      colSpan="7"
-                      className="text-center py-4 text-gray-400 italic"
-                    >
-                      No bookings found
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <p className="mt-2 text-xs text-gray-400 sm:hidden">
-          💡 Swipe left/right to see more.
-        </p>
+                    <div className="mt-2 space-y-1">
+                      {group.bookings.map((b, i) => (
+                        <div
+                          key={i}
+                          className="p-2 bg-black/20 rounded border border-gray-700 text-xs"
+                        >
+                          <p>Seats: {b.bookedSeats.join(" · ")}</p>
+                          <p>
+                            Amount: {currency} {b.amount}
+                          </p>
+                          <p>Status: {b.isPaid ? "Paid" : "Pending"}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </details>
+                </div>
+              ))}
+            </div>
+          );
+        })}
       </div>
     </>
   );

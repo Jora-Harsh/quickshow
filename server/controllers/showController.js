@@ -143,6 +143,42 @@ export const getAllShows = async (req, res) => {
   }
 };
 
+export const getAllShowsGrouped = async (req, res) => {
+  try {
+    const shows = await Show.find().populate("movie");
+
+    // Group by movie
+    const grouped = {};
+
+    shows.forEach((show) => {
+      const movieId = show.movie?._id?.toString();
+      if (!movieId) return;
+
+      if (!grouped[movieId]) {
+        grouped[movieId] = {
+          movie: show.movie,
+          shows: []
+        };
+      }
+
+      grouped[movieId].shows.push({
+        showId: show._id,
+        time: show.showDateTime,
+        theater: show.theater,
+        price: show.showPrice
+      });
+    });
+
+    res.json({
+      success: true,
+      shows: Object.values(grouped)
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+
 /* =========================================================
    4️⃣ GET ALL UPCOMING SHOWS FOR A MOVIE
 ========================================================= */
@@ -263,5 +299,106 @@ export const getLatestMovies = async (req, res) => {
   } catch (err) {
     console.error("❌ Error fetching latest movies:", err);
     res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+export const getShowById = async (req, res) => {
+  try {
+    const show = await Show.findById(req.params.showId).populate("movie"); // just added populatemovie
+    if (!show) {
+      return res.status(404).json({ success: false, message: "Show not found" });
+    }
+    res.json({ success: true, show });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+
+// export const updateShow = async (req, res) => {
+//   try {
+//     const { showDateTime, showPrice, theater } = req.body;
+
+//     const updated = await Show.findByIdAndUpdate(
+//       req.params.showId,
+//       { showDateTime, showPrice, theater },
+//       { new: true }
+//     );
+
+//     if (!updated) {
+//       return res.status(404).json({ success: false, message: "Show not found" });
+//     }
+
+//     return res.json({ success: true, message: "Show updated successfully", updated });
+//   } catch (err) {
+//     console.log(err);
+//     res.status(500).json({ success: false, message: "Update failed" });
+//   }
+// };
+
+
+// export const deleteShow = async (req, res) => {
+//   try {
+//     const deleted = await Show.findByIdAndDelete(req.params.showId);
+    
+//     if (!deleted) {
+//       return res.status(404).json({ success: false, message: "Show not found" });
+//     }
+
+//     res.json({ success: true, message: "Show deleted successfully" });
+//   } catch (err) {
+//     res.status(500).json({ success: false, message: "Delete failed" });
+//   }
+// };
+
+export const updateShow = async (req, res) => {
+  try {
+    const { showId } = req.params;
+    const { showDateTime, showPrice, theater } = req.body;
+
+    const updatedShow = await Show.findByIdAndUpdate(
+      showId,
+      { showDateTime, showPrice, theater },
+      { new: true }
+    );
+
+    if (!updatedShow) {
+      return res.status(404).json({ success: false, message: "Show not found" });
+    }
+
+    res.json({ success: true, show: updatedShow });
+  } catch (error) {
+    console.error("❌ Update error:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+export const deleteShow = async (req, res) => {
+  try {
+    const { showId } = req.params;
+
+    const deletedShow = await Show.findByIdAndDelete(showId);
+
+    if (!deletedShow) {
+      return res.status(404).json({ success: false, message: "Show not found" });
+    }
+
+    res.json({ success: true, message: "Show deleted successfully" });
+  } catch (error) {
+    console.error("❌ Delete error:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+
+export const getShowsForAdmin = async (req, res) => {
+  try {
+    const { movieId } = req.params;
+
+    const shows = await Show.find({ movie: movieId }).sort({ showDateTime: 1 });
+
+    res.json({ success: true, shows });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Failed to fetch movie shows" });
   }
 };

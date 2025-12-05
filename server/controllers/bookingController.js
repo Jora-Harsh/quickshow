@@ -165,8 +165,9 @@ export const getMyBookings = async (req, res) => {
   }
 };
 
+
 // -----------------------------
-// 📋 Get All Bookings (Admin)
+// 📋 Get All Bookings (Admin) — GROUPED VERSION
 // -----------------------------
 export const getAllBookings = async (req, res) => {
   try {
@@ -178,18 +179,40 @@ export const getAllBookings = async (req, res) => {
       })
       .sort({ createdAt: -1 });
 
-    const totalPaid = bookings
-      .filter(b => b.isPaid)
-      .reduce((sum, b) => sum + b.amount, 0);
+    const grouped = {};
+
+    bookings.forEach((b) => {
+      if (!b.show || !b.user || !b.show.movie) return;
+
+      const key = `${b.user._id}-${b.show._id}`;
+
+      if (!grouped[key]) {
+        grouped[key] = {
+          user: b.user,
+          movie: b.show.movie,       // FIXED ✔
+          theater: b.show.theater,   // FIXED ✔
+          showTime: b.show.showDateTime,
+          seats: [...b.bookedSeats],
+          totalAmount: b.amount,
+          isPaid: b.isPaid
+        };
+      } else {
+        grouped[key].seats.push(...b.bookedSeats);
+
+        if (b.isPaid) grouped[key].totalAmount += b.amount;
+
+        if (b.isPaid) grouped[key].isPaid = true;
+      }
+    });
 
     return res.status(200).json({
       success: true,
-      bookings,
-      totalPaid,
+      bookings: Object.values(grouped),
     });
+
   } catch (error) {
-    console.error("❌ Error fetching all bookings:", error);
-    return res.status(500).json({ success: false, message: "Server error while fetching all bookings" });
+    console.error("❌ Error grouping bookings:", error);
+    return res.status(500).json({ success: false, message: "Server error" });
   }
 };
 

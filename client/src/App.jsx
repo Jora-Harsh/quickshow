@@ -31,6 +31,8 @@ import ListShows from "./pages/admin/ListShows";
 import ListBookings from "./pages/admin/ListBookings";
 import ProtectedAdminRoute from "./components/admin/ProtectedAdminRoute.jsx";
 import Loading from "./components/Loading.jsx";
+import ManageShows from "./pages/admin/ManageShows.jsx";
+import EditShow from "./pages/admin/EditShow.jsx";
 
 const App = () => {
   // ✅ Always call hooks at the top
@@ -84,6 +86,8 @@ const App = () => {
             <Route path="add-shows" element={<AddShows />} />
             <Route path="list-shows" element={<ListShows />} />
             <Route path="list-bookings" element={<ListBookings />} />
+            <Route path="manage-shows" element={<ManageShows />} />
+            <Route path="edit-show/:showId" element={<EditShow />} />
           </Route>
         </Route>
       </Routes>
