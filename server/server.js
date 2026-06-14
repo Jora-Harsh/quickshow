@@ -42,31 +42,32 @@ app.post(
 app.use(express.json()); // OK after webhook
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      console.log("CORS Origin:", origin);
-      if (!origin) return callback(null, true);
+const corsOptions = {
+  origin: (origin, callback) => {
+    console.log("CORS Origin:", origin);
+    if (!origin) return callback(null, true);
 
-      const allowedOrigins = [
-        "http://localhost:5173",
-        "http://localhost:5174",
-        process.env.CLIENT_URL
-      ].filter(Boolean);
+    const allowedOrigins = [
+      "http://localhost:5173",
+      "http://localhost:5174",
+      process.env.CLIENT_URL
+    ].filter(Boolean);
 
-      const isVercelPreview =
-        origin.includes("quickshow-client") &&
-        origin.endsWith(".vercel.app");
+    const isVercelPreview =
+      origin.includes("quickshow-client") &&
+      origin.endsWith(".vercel.app");
 
-      if (allowedOrigins.includes(origin) || isVercelPreview) {
-        return callback(null, true);
-      }
+    if (allowedOrigins.includes(origin) || isVercelPreview) {
+      return callback(null, true);
+    }
 
-      return callback(new Error(`Origin ${origin} not allowed by CORS`));
-    },
-    credentials: true
-  })
-);
+    return callback(null, false);
+  },
+  credentials: true
+};
+
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions));
 
 
 
