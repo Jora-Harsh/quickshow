@@ -6,6 +6,11 @@ import { toast } from "react-hot-toast";
 axios.defaults.baseURL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 axios.defaults.withCredentials = true;
 
+const storedToken = localStorage.getItem("token");
+if (storedToken) {
+  axios.defaults.headers.common["Authorization"] = `Bearer ${storedToken}`;
+}
+
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
@@ -30,10 +35,14 @@ export const AuthProvider = ({ children }) => {
         } else {
           setUser(null);
           localStorage.removeItem("user");
+          localStorage.removeItem("token");
+          delete axios.defaults.headers.common["Authorization"];
         }
       } catch (err) {
         setUser(null);
         localStorage.removeItem("user");
+        localStorage.removeItem("token");
+        delete axios.defaults.headers.common["Authorization"];
       } finally {
         setLoading(false);
       }
@@ -50,6 +59,8 @@ export const AuthProvider = ({ children }) => {
       if (res.data.success) {
         setUser(res.data.user);
         localStorage.setItem("user", JSON.stringify(res.data.user));
+        localStorage.setItem("token", res.data.token);
+        axios.defaults.headers.common["Authorization"] = `Bearer ${res.data.token}`;
       }
 
       // Redirect based on role
@@ -81,6 +92,8 @@ export const AuthProvider = ({ children }) => {
       if (res.data.success) {
         setUser(res.data.user);
         localStorage.setItem("user", JSON.stringify(res.data.user));
+        localStorage.setItem("token", res.data.token);
+        axios.defaults.headers.common["Authorization"] = `Bearer ${res.data.token}`;
       }
 
       return res.data;
@@ -98,6 +111,8 @@ export const AuthProvider = ({ children }) => {
       await axios.post(`${API_URL}/api/auth/logout`, {}, { withCredentials: true });
       setUser(null);
       localStorage.removeItem("user");
+      localStorage.removeItem("token");
+      delete axios.defaults.headers.common["Authorization"];
     } catch (err) {
       console.error(err);
     }

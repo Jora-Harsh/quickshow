@@ -77,12 +77,7 @@ app.options(/(.*)/, cors(corsOptions));
 // ------------------------------------------
 // 3️⃣ CONNECT DATABASE
 // ------------------------------------------
-try {
-  await connectDB();
-} catch (err) {
-  console.error("Critical: Database connection failed. Express routes will not be initialized.");
-  process.exit(1);
-}
+connectDB();
 
 // ------------------------------------------
 // 4️⃣ START AUTO BOOKING CLEANUP JOB
@@ -106,7 +101,7 @@ app.use("/api/admin", adminRouter);
 app.use("/api/favorites", favoriteRoutes);
 app.use("/api/movies", movieRouter);
 app.use("/api/payment", paymentRoutes);
-app.use("/api/reports",reportRoutes)
+app.use("/api/reports", reportRoutes)
 
 
 
