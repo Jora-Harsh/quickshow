@@ -23,6 +23,7 @@ showRouter.get("/all-grouped", getAllShowsGrouped);
 showRouter.get("/by-date", getShowsByMovieAndDate); //
 showRouter.get("/:movieId", getShow);
 showRouter.get("/:movieId/related", getRelatedMovies);
+showRouter.get("/:movieId/you-may-like", getRelatedMovies);
 // showRouter.get("/latest", getLatestMovies);
 showRouter.get("/by-id/:showId", getShowById);
 showRouter.put("/update/:showId", updateShow);
