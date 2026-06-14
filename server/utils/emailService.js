@@ -57,7 +57,7 @@ export const generateConfirmationEmail = ({
         <hr style="border: none; border-top: 1px solid #e0e0e0; margin: 20px 0;" />
         <p style="font-size: 14px; color: #555;">Thank you for booking with QuickShow. Enjoy your movie! 🎥</p>
         <p style="margin-top: 30px; text-align: center;">
-          <a href="http://localhost:5173" style="background-color: #1d4ed8; color: white; padding: 12px 25px; border-radius: 5px; text-decoration: none;">View Booking</a>
+          <a href="${process.env.CLIENT_URL || "http://localhost:5173"}" style="background-color: #1d4ed8; color: white; padding: 12px 25px; border-radius: 5px; text-decoration: none;">View Booking</a>
         </p>
       </div>
       <div style="background-color: #f3f4f6; color: #555; padding: 15px; text-align: center; font-size: 12px;">
@@ -87,7 +87,7 @@ export const generateCancellationEmail = ({ userName, movieTitle, theater, showT
         <hr style="border: none; border-top: 1px solid #e0e0e0; margin: 20px 0;" />
         <p style="font-size: 14px; color: #555;">If you want to book tickets again, you can visit our website and make a new booking at any time.</p>
         <p style="margin-top: 30px; text-align: center;">
-          <a href="http://localhost:5173" style="background-color: #1d4ed8; color: white; padding: 12px 25px; border-radius: 5px; text-decoration: none;">Book Again</a>
+          <a href="${process.env.CLIENT_URL || "http://localhost:5173"}" style="background-color: #1d4ed8; color: white; padding: 12px 25px; border-radius: 5px; text-decoration: none;">Book Again</a>
         </p>
       </div>
       <div style="background-color: #f3f4f6; color: #555; padding: 15px; text-align: center; font-size: 12px;">

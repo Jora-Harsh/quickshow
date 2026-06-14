@@ -12,7 +12,7 @@ const Releases = () => {
     const fetchLatestMovies = async () => {
       try {
         const { data } = await axios.get(
-          "http://localhost:3000/api/movies/latest?limit=3"
+          "/api/movies/latest?limit=3"
         );
 
         if (data.success) {

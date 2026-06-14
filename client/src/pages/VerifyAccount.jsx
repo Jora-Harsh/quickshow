@@ -16,8 +16,9 @@ export default function VerifyAccount() {
 
     const verifyAccount = async () => {
       try {
+        const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
         const res = await axios.get(
-          `http://localhost:5000/api/auth/verify-account?token=${token}`,
+          `${API_URL}/api/auth/verify-account?token=${token}`,
           { withCredentials: true }
         );
 

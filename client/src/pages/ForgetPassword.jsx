@@ -30,8 +30,9 @@ export default function ForgotPassword() {
     setLoading(true);
 
     try {
+      const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
       const res = await axios.post(
-        "http://localhost:3000/api/auth/send-reset-otp",
+        `${API_URL}/api/auth/send-reset-otp`,
         { email: form.email },
         { withCredentials: true }
       );
@@ -59,8 +60,9 @@ export default function ForgotPassword() {
     setLoading(true);
 
     try {
+      const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
       const res = await axios.post(
-        "http://localhost:3000/api/auth/reset-password",
+        `${API_URL}/api/auth/reset-password`,
         { email: form.email, otp: form.otp, newPassword: form.newPassword },
         { withCredentials: true }
       );

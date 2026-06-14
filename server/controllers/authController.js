@@ -41,7 +41,7 @@ export const register = async (req, res) => {
 
     // Generate token for email verification
     const verifyToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "1d" });
-    const verifyUrl = `${process.env.CLIENT_URL}/verify-account?token=${verifyToken}`;
+    const verifyUrl = `${process.env.CLIENT_URL}/verify?token=${verifyToken}`;
 
     // Send verification email
     await transporter.sendMail({
@@ -102,8 +102,8 @@ export const verifyAccount = async (req, res) => {
     user.isAccountVerified = true;
     await user.save();
 
-    // Redirect to frontend verified-success page
-    return res.redirect(`${process.env.CLIENT_URL}/verified-success`);
+    // Return success JSON
+    return res.status(200).json({ success: true, message: "Account verified successfully" });
   } catch (error) {
     console.error("VerifyAccount error:", error);
     return res.status(500).json({ success: false, message: "Invalid or expired token" });
@@ -212,7 +212,7 @@ export const resendVerification = async (req, res) => {
 
     // Generate new verify token
     const verifyToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "1d" });
-    const verifyUrl = `${process.env.CLIENT_URL}/verify-account?token=${verifyToken}`;
+    const verifyUrl = `${process.env.CLIENT_URL}/verify?token=${verifyToken}`;
 
     await transporter.sendMail({
       from: process.env.SENDER_EMAIL,
