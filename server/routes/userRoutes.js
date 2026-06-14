@@ -17,14 +17,7 @@ import { addFavorite, getFavorites, getUsersData, removeFavorite, uploadProfileP
 const userRouter = express.Router();
 
 // multer setup
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, "uploads/"); // make sure this folder exists in your backend root
-  },
-  filename: function (req, file, cb) {
-    cb(null, Date.now() + path.extname(file.originalname));
-  },
-});
+const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
 // existing route

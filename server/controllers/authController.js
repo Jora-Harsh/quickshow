@@ -28,7 +28,8 @@ export const register = async (req, res) => {
     // Handle profile picture upload
     let profilePic = "";
     if (req.file) {
-      profilePic = `/uploads/${req.file.filename}`;
+      // Local disk file uploads are disabled on Vercel
+      profilePic = "";
     }
 
     const user = new userModel({

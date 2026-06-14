@@ -79,7 +79,7 @@ startBookingCleanupJob();
 // ------------------------------------------
 // 5️⃣ STATIC FILES
 // ------------------------------------------
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+// app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // ------------------------------------------
 // 6️⃣ ROUTES

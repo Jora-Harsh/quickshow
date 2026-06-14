@@ -564,10 +564,9 @@ printer.vfs = pdfFonts.pdfMake.vfs;
 const loadLogoBase64 = () => {
   try {
     const envPath = process.env.REPORT_LOGO_PATH;
-    const logoPath = envPath || path.join(process.cwd(), "uploads", "logo.png");
-    if (fs.existsSync(logoPath)) {
-      const buf = fs.readFileSync(logoPath);
-      const ext = path.extname(logoPath).replace(".", "") || "png";
+    if (envPath && fs.existsSync(envPath)) {
+      const buf = fs.readFileSync(envPath);
+      const ext = path.extname(envPath).replace(".", "") || "png";
       return `data:image/${ext};base64,${buf.toString("base64")}`;
     }
   } catch (e) {
