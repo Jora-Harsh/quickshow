@@ -2,27 +2,69 @@ import axios from "axios";
 import Movie from "../models/Movie.js";
 import Show from "../models/Show.js";
 
+// Helper for fetching from TMDB with retries to resolve transient TLS issues
+const tmdbGet = async (url) => {
+  let lastErr;
+  for (let i = 0; i < 3; i++) {
+    try {
+      const response = await axios.get(url, {
+        headers: {
+          accept: "application/json",
+          Authorization: `Bearer ${process.env.TMDB_API_KEY}`,
+        },
+      });
+      return response;
+    } catch (err) {
+      lastErr = err;
+      console.log(`⚠️ TMDB call to ${url} failed (attempt ${i + 1}/3): ${err.message}`);
+      if (i < 2) {
+        await new Promise(resolve => setTimeout(resolve, 150));
+      }
+    }
+  }
+  throw lastErr;
+};
+
 /* =========================================================
    1️⃣ GET NOW PLAYING MOVIES (from TMDB)
 ========================================================= */
 export const getNowPlayingMovies = async (req, res) => {
+  console.log("➡️ Received request for GET /api/shows/now-playing");
   try {
     const url =
       "https://api.themoviedb.org/3/movie/now_playing?language=en-US&page=1";
 
-    const { data } = await axios.get(url, {
-      headers: {
-        accept: "application/json",
-        Authorization: `Bearer ${process.env.TMDB_API_KEY}`,
-      },
-    });
+    console.log(`🌐 Initiating TMDB API call to: ${url}`);
+    console.log("🔑 TMDB_API_KEY length:", process.env.TMDB_API_KEY ? process.env.TMDB_API_KEY.length : 0);
+
+    let data;
+    try {
+      const response = await tmdbGet(url);
+      data = response.data;
+      console.log(`✅ TMDB now_playing call succeeded. Received ${data.results?.length} movies.`);
+    } catch (firstErr) {
+      console.log(`⚠️ now_playing failed permanently after retries. Trying Popular movies fallback...`);
+      const urlPopular = "https://api.themoviedb.org/3/movie/popular?language=en-US&page=1";
+      const response = await tmdbGet(urlPopular);
+      data = response.data;
+      console.log(`✅ TMDB popular fallback succeeded. Received ${data.results?.length} movies.`);
+    }
 
     res.json({ success: true, movies: data.results });
   } catch (err) {
-    console.error("TMDB Error:", err.response?.data || err.message);
-    res.status(500).json({ success: false, message: "Failed to fetch movies" });
+    console.log("❌ TMDB now_playing and popular fallback failed.");
+    console.log("Error status code:", err.response?.status);
+    console.log("Error data:", err.response?.data);
+    console.log("Error message:", err.message);
+    console.log("Error stack:", err.stack);
+    res.status(500).json({ 
+      success: false, 
+      message: "Failed to fetch movies",
+      errorDetails: err.response?.data || err.message 
+    });
   }
 };
+
 
 /* =========================================================
    2️⃣ ADD SHOWS FOR A MOVIE (Admin)
@@ -47,18 +89,8 @@ export const addShow = async (req, res) => {
     if (!movie) {
       try {
         const [movieDetailsRes, creditsRes] = await Promise.all([
-          axios.get(`https://api.themoviedb.org/3/movie/${movieId}`, {
-            headers: {
-              accept: "application/json",
-              Authorization: `Bearer ${process.env.TMDB_API_KEY}`,
-            },
-          }),
-          axios.get(`https://api.themoviedb.org/3/movie/${movieId}/credits`, {
-            headers: {
-              accept: "application/json",
-              Authorization: `Bearer ${process.env.TMDB_API_KEY}`,
-            },
-          }),
+          tmdbGet(`https://api.themoviedb.org/3/movie/${movieId}`),
+          tmdbGet(`https://api.themoviedb.org/3/movie/${movieId}/credits`),
         ]);
 
         const d = movieDetailsRes.data;
@@ -223,10 +255,12 @@ export const getShow = async (req, res) => {
    5️⃣ GET RELATED MOVIES (TMDB)
 ========================================================= */
 export const getRelatedMovies = async (req, res) => {
+  console.log(`➡️ Received request for GET /api/shows/${req.params.movieId}/related`);
   try {
     const { movieId } = req.params;
 
     if (!movieId) {
+      console.log("⚠️ Missing movieId parameter");
       return res
         .status(400)
         .json({ success: false, message: "movieId required" });
@@ -234,25 +268,47 @@ export const getRelatedMovies = async (req, res) => {
 
     const apiKey = process.env.TMDB_API_KEY;
     if (!apiKey) {
+      console.log("⚠️ TMDB_API_KEY is not configured");
       return res.status(500).json({
         success: false,
         message: "TMDb API key not configured",
       });
     }
 
-    const response = await axios.get(
-      `https://api.themoviedb.org/3/movie/${movieId}/recommendations?api_key=${apiKey}&language=en-US`
-    );
+    let results = [];
+    const urlRecommendations = `https://api.themoviedb.org/3/movie/${movieId}/recommendations?language=en-US`;
+    console.log(`🌐 Trying TMDB Recommendations API: ${urlRecommendations}`);
 
-    res.json({ success: true, movies: response.data.results || [] });
+    try {
+      const response = await tmdbGet(urlRecommendations);
+      results = response.data.results || [];
+      console.log(`✅ TMDB Recommendations call succeeded. Received ${results.length} movies.`);
+    } catch (recErr) {
+      console.log(`⚠️ Recommendations failed (${recErr.message}). Falling back to TMDB Similar movies...`);
+      const urlSimilar = `https://api.themoviedb.org/3/movie/${movieId}/similar?language=en-US`;
+      console.log(`🌐 Trying TMDB Similar API: ${urlSimilar}`);
+      
+      const response = await tmdbGet(urlSimilar);
+      results = response.data.results || [];
+      console.log(`✅ TMDB Similar call succeeded. Received ${results.length} movies.`);
+    }
+
+    res.json({ success: true, movies: results });
   } catch (err) {
-    console.error("❌ Related movies error:", err.message);
+    console.log("❌ Related movies request failed.");
+    console.log("Error status code:", err.response?.status);
+    console.log("Error data:", err.response?.data);
+    console.log("Error message:", err.message);
+    console.log("Error stack:", err.stack);
     res.status(500).json({
       success: false,
       message: "Failed to fetch related movies",
+      errorDetails: err.response?.data || err.message,
     });
   }
 };
+
+
 
 /* =========================================================
    6️⃣ GET SHOWS BY MOVIE + DATE (For TheaterList)
