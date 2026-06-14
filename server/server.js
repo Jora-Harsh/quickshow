@@ -101,6 +101,12 @@ app.use("/api/reports",reportRoutes)
 
 
 // ------------------------------------------
-// 7️⃣ START SERVER
+// 7️⃣ START SERVER (Local Only)
 // ------------------------------------------
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+if (process.env.NODE_ENV !== "production") {
+  app.listen(PORT, () =>
+    console.log(`Server running on port ${PORT}`)
+  );
+}
+
+export default app;
